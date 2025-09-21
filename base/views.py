@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from .models import Task
-from django.utils import timezone
 from .serializers import TaskSerializer
-from rest_framework import generics
+from django.shortcuts import render
 
-
-# Home page: list tasks by priority
 def home(request):
     lowPriorityTasks = Task.objects.filter(priority=Task.Priority.LOW)
     midPriorityTasks = Task.objects.filter(priority=Task.Priority.MID)
@@ -19,11 +19,23 @@ def home(request):
     return render(request, 'base/home.html', context)
 
 
-class TaskListCreate(generics.ListCreateAPIView):
-    queryset = Task.objects.all()
+class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
-class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Task.objects.all()
-    serializer_class = TaskSerializer
+    def get_queryset(self):
+        include_deleted = self.request.query_params.get('deleted', 'false').lower() == 'true'
+        if include_deleted:
+            return Task.global_objects.all() 
+        return Task.objects.all() 
 
+    def destroy(self, request, *args, **kwargs):
+        task = self.get_object()
+        task.delete() 
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])
+    def restore(self, request, pk=None):
+        task = get_object_or_404(Task.global_objects, pk=pk)  
+        task.restore()
+        serializer = self.get_serializer(task)
+        return Response(serializer.data, status=status.HTTP_200_OK)

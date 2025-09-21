@@ -35,12 +35,28 @@
         transform: translateX(100%);
         transition: transform 0.3s ease;
         z-index: 1000;
+        max-width: 300px;
       }
       .toast.show {
         display: flex;
         align-items: center;
         gap: 10px;
         transform: translateX(0);
+      }
+      .toast-undo-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .toast-undo-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
       }
       .backToTop {
         position: fixed;
@@ -487,10 +503,12 @@
         tasks: [],
         editId: null,
         taskToDelete: null,
+        deletedTask: null,
         currentSearchTerm: "",
         currentPriorityFilter: null,
         sortOrder: "asc",
         searchTimeout: null,
+        toastTimeout: null,
       };
 
       //utility functions
@@ -523,11 +541,37 @@
 
       //helper function
       const helpers = {
-        showToast: (msg, isError = false) => {
+        showToast: (
+          msg,
+          isError = false,
+          showUndo = false,
+          undoCallback = null
+        ) => {
+          clearTimeout(state.toastTimeout);
+
           DOM.toast.className = "toast show";
           DOM.toast.style.background = isError ? "#dc2626" : "#059669";
-          DOM.toast.textContent = msg;
-          setTimeout(() => DOM.toast.classList.remove("show"), 3000);
+
+          if (showUndo && undoCallback) {
+            DOM.toast.innerHTML = `
+                    <span>${msg}</span>
+                    <button class="toast-undo-btn" onclick="(${undoCallback.toString()})()">Undo</button>
+                  `;
+          } else {
+            DOM.toast.textContent = msg;
+          }
+
+          state.toastTimeout = setTimeout(
+            () => {
+              DOM.toast.classList.remove("show");
+              if (showUndo) {
+                setTimeout(() => {
+                  state.deletedTask = null;
+                }, 300);
+              }
+            },
+            showUndo ? 5000 : 3000
+          );
         },
 
         matchesSearch: (task, term) => {
@@ -596,36 +640,36 @@
           card.className = `task-card priority-${task.priority.toLowerCase()} p-3 bg-gray-700 rounded-lg shadow hover:scale-105 transition-all duration-200 fade-in`;
           card.dataset.id = task.id;
           card.innerHTML = `
-            <h3 class="font-semibold text-white">${task.title}</h3>
-            <p class="text-gray-300 text-xs mb-2">Date added: ${
-              utils.formatDueDate(task.created_at) || ""
-            }</p>
-            <p class="text-gray-300 text-sm">${task.description || ""}</p>
-            <p class="text-sm text-gray-400">
-              <span class="${utils.getPriorityColor(task.priority)}">${
+                  <h3 class="font-semibold text-white">${task.title}</h3>
+                  <p class="text-gray-300 text-xs mb-2">Date added: ${
+                    utils.formatDueDate(task.created_at) || ""
+                  }</p>
+                  <p class="text-gray-300 text-sm">${task.description || ""}</p>
+                  <p class="text-sm text-gray-400">
+                    <span class="${utils.getPriorityColor(task.priority)}">${
             task.priority
           }</span> • Due: ${utils.formatDueDate(task.due_datetime)}
-            </p>
-            <div class="flex gap-2 mt-2 items-center">
-              <select onchange="api.markAsDone(${
-                task.id
-              },this.value)" class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500">
-                ${config.columns
-                  .map(
-                    (s) =>
-                      `<option ${
-                        task.status === s ? "selected" : ""
-                      }>${s}</option>`
-                  )
-                  .join("")}
-              </select>
-              <button onclick="handlers.editTask(${
-                task.id
-              })" class="p-1 text-yellow-300 hover:text-yellow-200" title="Edit">✎</button>
-              <button onclick="handlers.showDeleteModal(${
-                task.id
-              })" class="p-1 text-red-400 hover:text-red-300" title="Delete">🗑</button>
-            </div>`;
+                  </p>
+                  <div class="flex gap-2 mt-2 items-center">
+                    <select onchange="api.markAsDone(${
+                      task.id
+                    },this.value)" class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500">
+                      ${config.columns
+                        .map(
+                          (s) =>
+                            `<option ${
+                              task.status === s ? "selected" : ""
+                            }>${s}</option>`
+                        )
+                        .join("")}
+                    </select>
+                    <button onclick="handlers.editTask(${
+                      task.id
+                    })" class="p-1 text-yellow-300 hover:text-yellow-200" title="Edit">✎</button>
+                    <button onclick="handlers.showDeleteModal(${
+                      task.id
+                    })" class="p-1 text-red-400 hover:text-red-300" title="Delete">🗑</button>
+                  </div>`;
           return card;
         },
 
@@ -804,17 +848,17 @@
 
             const statusMessagesDiscordDaddy = {
               "Not Started": [
-                "Back to the start, kitten. Daddy’s watching 😏",
+                "Back to the start, kitten. Daddy's watching 😏",
                 "Not started yet? Daddy believes in you… sorta 😅",
                 "Fresh start, kitten. Daddy says grab a snack and go 🍕",
               ],
               "In Progress": [
                 "Getting somewhere, kitten! Daddy is proud-ish 🐱",
                 "Making progress! Daddy got off his chair to see this 😎",
-                "Task is rolling! Don’t make Daddy regret giving you mod powers 😏",
+                "Task is rolling! Don't make Daddy regret giving you mod powers 😏",
               ],
               Completed: [
-                "Finally done, kitten! Daddy’s proud! Treat yourself 🍩",
+                "Finally done, kitten! Daddy's proud! Treat yourself 🍩",
                 "Task completed! Daddy might shed a tear 😹",
                 "Well done, kitten. Daddy approves… snacks for you 🐱🎉",
               ],
@@ -844,16 +888,66 @@
         deleteTask: async () => {
           if (!state.taskToDelete) return;
           try {
+            // Store the task before deletion for potential undo
+            const taskToDelete = state.tasks.find(
+              (currentTask) => currentTask.id === state.taskToDelete
+            );
+            state.deletedTask = { ...taskToDelete };
+
             await axios.delete(config.API_BASE + state.taskToDelete + "/");
             state.tasks = state.tasks.filter(
               (currentTask) => currentTask.id !== state.taskToDelete
             );
             state.taskToDelete = null;
             DOM.deleteModal.classList.remove("active");
-            helpers.showToast("Task deleted");
+
+            // Show toast with undo button
+            helpers.showToast(
+              "Task deleted",
+              false,
+              true,
+              function undoDelete() {
+                if (state.deletedTask) {
+                  api.restoreTask(state.deletedTask);
+                }
+              }
+            );
+
             components.renderBoard();
           } catch (e) {
             helpers.showToast("Error deleting task", true);
+            console.error(e);
+          }
+        },
+
+        restoreTask: async (taskData) => {
+          if (!taskData?.id) return;
+
+          try {
+            const res = await axios.post(
+              `${config.API_BASE}${taskData.id}/restore/`
+            );
+
+            if (res.status === 200 && res.data) {
+              const index = state.tasks.findIndex((t) => t.id === taskData.id);
+              if (index !== -1) {
+                state.tasks[index] = res.data;
+              } else {
+                state.tasks.push(res.data);
+              }
+
+              state.deletedTask = null;
+
+              DOM.toast.classList.remove("show");
+              clearTimeout(state.toastTimeout);
+
+              helpers.showToast("Task restored");
+              components.renderBoard();
+            } else {
+              helpers.showToast("Failed to restore task", true);
+            }
+          } catch (e) {
+            helpers.showToast("Error restoring task", true);
             console.error(e);
           }
         },
