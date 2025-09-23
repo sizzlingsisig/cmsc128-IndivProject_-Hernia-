@@ -7,14 +7,9 @@ from .serializers import TaskSerializer
 from django.shortcuts import render
 
 def home(request):
-    lowPriorityTasks = Task.objects.filter(priority=Task.Priority.LOW)
-    midPriorityTasks = Task.objects.filter(priority=Task.Priority.MID)
-    highPriorityTasks = Task.objects.filter(priority=Task.Priority.HIGH)
-
+    tasks = Task.objects.all()
     context = {
-        'lowPriorityTasks': lowPriorityTasks,
-        'midPriorityTasks': midPriorityTasks,
-        'highPriorityTasks': highPriorityTasks,
+        'tasks': tasks
     }
     return render(request, 'base/home.html', context)
 
