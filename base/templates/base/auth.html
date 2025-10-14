@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUST DO IT - Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .auth-card {
+        background: rgba(31, 41, 55, 0.85);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      }
+    </style>
+  </head>
+
+  <body
+    class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-900 flex items-center justify-center p-6"
+  >
+    <div
+      class="auth-card w-full max-w-md rounded-2xl px-8 py-10 fade-in border border-gray-700"
+    >
+      <div class="flex flex-col items-center mb-8">
+        <h1 class="text-3xl font-bold text-white tracking-wide">JUST DO IT</h1>
+        <p class="text-gray-400 text-sm mt-1">Your tasks. Your discipline.</p>
+      </div>
+
+      <!-- Login -->
+      <div id="loginForm">
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Welcome Back 👋
+        </h2>
+        <div class="space-y-4">
+          <input
+            id="loginUsername"
+            type="text"
+            placeholder="Username"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Password"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+
+        <button
+          id="loginBtn"
+          class="mt-6 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+        >
+          Login
+        </button>
+
+        <div class="mt-6 flex flex-col items-center space-y-2">
+          <button
+            onclick="showForgotPassword()"
+            class="text-sm text-violet-400 hover:text-violet-300 transition"
+          >
+            Forgot Password?
+          </button>
+          <p class="text-gray-400 text-sm">
+            Don’t have an account?
+            <button
+              onclick="toggleForms('register')"
+              class="text-violet-400 hover:text-violet-300"
+            >
+              Register
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div id="registerForm" class="hidden">
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Create Account ✨
+        </h2>
+        <div class="space-y-4">
+          <input
+            id="registerUsername"
+            type="text"
+            placeholder="Username"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="registerEmail"
+            type="email"
+            placeholder="Email"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="registerPassword"
+            type="password"
+            placeholder="Password"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+
+        <button
+          id="registerBtn"
+          class="mt-6 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+        >
+          Register
+        </button>
+
+        <p class="text-gray-400 text-sm text-center mt-6">
+          Already have an account?
+          <button
+            onclick="toggleForms('login')"
+            class="text-violet-400 hover:text-violet-300"
+          >
+            Login
+          </button>
+        </p>
+      </div>
+
+      <!-- Forgot Password (Inline) -->
+      <div id="forgotForm" class="hidden">
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Forgot Password 🔒
+        </h2>
+
+        <div id="forgotStep1" class="space-y-4">
+          <input
+            id="forgotUsername"
+            type="text"
+            placeholder="Enter your username"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            onclick="nextForgotStep(2)"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Next
+          </button>
+        </div>
+
+        <div id="forgotStep2" class="hidden space-y-4">
+          <p class="text-gray-300 text-sm mb-2">
+            What’s your favorite motivational quote?
+          </p>
+          <input
+            id="securityAnswer"
+            type="text"
+            placeholder="Your answer"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            onclick="nextForgotStep(3)"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Verify
+          </button>
+        </div>
+
+        <div id="forgotStep3" class="hidden space-y-4">
+          <input
+            id="newPassword"
+            type="password"
+            placeholder="Enter new password"
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            onclick="finishReset()"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Reset Password
+          </button>
+        </div>
+
+        <button
+          onclick="toggleForms('login')"
+          class="text-gray-400 hover:text-gray-200 text-sm mt-4 w-full"
+        >
+          Back to Login
+        </button>
+      </div>
+
+      <!-- Toast -->
+    </div>
+    <div
+      id="toast"
+      class="fixed top-6 right-6 py-2 px-4 rounded-lg shadow-lg hidden transition-all duration-300 z-50 text-white font-semibold bg-green-500"
+    ></div>
+    <script>
+      const toast = document.getElementById("toast");
+
+      function showToast(message, error = false) {
+        toast.textContent = message;
+        toast.classList.remove("hidden");
+
+        toast.classList.remove("bg-red-600", "bg-green-500");
+
+        if (error) {
+          toast.classList.add("bg-red-600");
+        } else {
+          toast.classList.add("bg-green-500");
+        }
+
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      function toggleForms(form) {
+        const forms = ["loginForm", "registerForm", "forgotForm"];
+        forms.forEach((id) =>
+          document
+            .getElementById(id)
+            .classList.toggle("hidden", id !== form + "Form")
+        );
+      }
+
+      function showForgotPassword() {
+        toggleForms("forgot");
+      }
+
+      function nextForgotStep(step) {
+        for (let i = 1; i <= 3; i++) {
+          document
+            .getElementById(forgotStep$,{i})
+            .classList.toggle("hidden", i !== step);
+        }
+      }
+
+      function finishReset() {
+        showToast("Password reset successful!");
+        toggleForms("login");
+      }
+
+      // Fake login logic
+      document.getElementById("loginBtn").addEventListener("click", () => {
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        if (!username || !password)
+          return showToast("Please enter all fields", true);
+
+        if (username === "test" && password === "1234") {
+          showToast("Login successful!");
+        } else {
+          showToast("Invalid credentials", true);
+        }
+      });
+
+      // Fake registration logic
+      document.getElementById("registerBtn").addEventListener("click", () => {
+        const username = document
+          .getElementById("registerUsername")
+          .value.trim();
+        const email = document.getElementById("registerEmail").value.trim();
+        const password = document
+          .getElementById("registerPassword")
+          .value.trim();
+
+        if (!username || !email || !password)
+          return showToast("All fields required", true);
+
+        showToast("Registration successful!");
+        toggleForms("login");
+      });
+    </script>
+  </body>
+</html>
