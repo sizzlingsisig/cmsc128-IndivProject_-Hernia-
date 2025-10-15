@@ -4,7 +4,7 @@ from .views import (
     home, auth, TaskViewSet,
     profile, signup, login, test_token,
     get_security_question, reset_password, update_security_question,
-    update_user_info, logout
+    update_user_info, logout, verify_security_answer , me, change_password
 )
 
 # Router for tasks
@@ -21,6 +21,9 @@ user_patterns = [
     path('update-security-question/', update_security_question, name='update-security-question'),
     path('update-user-info/', update_user_info, name='update-user-info'),
     path('logout/', logout, name='logout'),
+    path('verify-security-answer/', verify_security_answer, name='verify-security-answer'),
+    path('change-password/', change_password, name='change-password'),
+    path('me/', me, name='me'),  
 ]
 
 urlpatterns = [

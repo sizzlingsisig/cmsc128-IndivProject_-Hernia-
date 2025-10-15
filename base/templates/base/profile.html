@@ -1,14 +1,22 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JUST DO IT - Profile</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{% static 'js/axios.js' %}"></script>
+
+    <!-- Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -44,6 +52,9 @@
       .modal.active {
         display: flex;
         opacity: 1;
+      }
+      body.modal-open {
+        overflow: hidden;
       }
     </style>
   </head>
@@ -89,7 +100,7 @@
         </button>
       </div>
 
-      <!-- Profile Content (always show profile picture) -->
+      <!-- Profile Content -->
       <div class="relative flex justify-center mb-4">
         <img
           id="profileImage"
@@ -98,7 +109,6 @@
         />
       </div>
 
-      <!-- Profile Info -->
       <div id="profileContent" class="space-y-6">
         <div class="space-y-5 text-gray-300">
           <div>
@@ -109,7 +119,6 @@
             <input
               id="username"
               type="text"
-              value="testuser"
               class="w-full p-3.5 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               readonly
             />
@@ -122,7 +131,6 @@
             <input
               id="email"
               type="email"
-              value="test@example.com"
               class="w-full p-3.5 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               readonly
             />
@@ -159,15 +167,15 @@
       <div id="securityContent" class="hidden space-y-4">
         <button
           id="passwordBtn"
-          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between group"
+          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between"
         >
-          <span>Change Password</span>
+          Change Password
         </button>
         <button
           id="securityBtn"
-          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between group"
+          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between"
         >
-          <span>Security Question</span>
+          Security Question
         </button>
       </div>
     </div>
@@ -249,12 +257,14 @@
     ></div>
 
     <script>
+      // Toast function
       const toast = document.getElementById("toast");
       function showToast(message, error = false) {
         toast.textContent = message;
-        toast.classList.remove("hidden");
-        toast.classList.remove("bg-red-600", "bg-green-500");
+        toast.classList.remove("hidden", "bg-red-600", "bg-green-500");
         toast.classList.add(error ? "bg-red-600" : "bg-green-500");
+        toast.classList.remove("opacity-0");
+        toast.classList.add("opacity-100");
         setTimeout(() => toast.classList.add("hidden"), 3000);
       }
 
@@ -285,21 +295,46 @@
         });
       });
 
-      // Profile edit logic
+      // Elements
       const usernameInput = document.getElementById("username");
       const emailInput = document.getElementById("email");
       const editBtn = document.getElementById("editBtn");
       const saveCancelBtns = document.getElementById("saveCancelBtns");
-      let originalUsername = usernameInput.value;
-      let originalEmail = emailInput.value;
+      const securityModalEl = document.getElementById("securityModal");
+      const passwordModalEl = document.getElementById("passwordModal");
+      const secQuestionInput = document.getElementById("secQuestion");
+      const secAnswerInput = document.getElementById("secAnswer");
+      let originalUsername = "",
+        originalEmail = "";
 
+      // Load profile
+      async function loadProfile() {
+        const token = localStorage.getItem("token");
+        if (!token) return (window.location.href = "/");
+        try {
+          const res = await apiClient.get("users/me/");
+          const user = res.data;
+          usernameInput.value = user.username;
+          emailInput.value = user.email;
+          originalUsername = user.username;
+          originalEmail = user.email;
+          if (user.profile_image)
+            document.getElementById("profileImage").src = user.profile_image;
+          if (!user.profile?.security_question) openModal(securityModalEl);
+        } catch (err) {
+          showToast("Failed to load profile.", true);
+          console.error(err);
+        }
+      }
+      loadProfile();
+
+      // Edit Profile
       editBtn.addEventListener("click", () => {
         usernameInput.removeAttribute("readonly");
         emailInput.removeAttribute("readonly");
         editBtn.classList.add("hidden");
         saveCancelBtns.classList.remove("hidden");
       });
-
       document.getElementById("cancelBtn").addEventListener("click", () => {
         usernameInput.value = originalUsername;
         emailInput.value = originalEmail;
@@ -308,68 +343,118 @@
         saveCancelBtns.classList.add("hidden");
         editBtn.classList.remove("hidden");
       });
-
-      document.getElementById("saveBtn").addEventListener("click", () => {
-        if (!usernameInput.value.trim() || !emailInput.value.trim()) {
+      document.getElementById("saveBtn").addEventListener("click", async () => {
+        const username = usernameInput.value.trim(),
+          email = emailInput.value.trim();
+        if (!username || !email) {
           showToast("Username and Email cannot be empty", true);
           return;
         }
-        originalUsername = usernameInput.value;
-        originalEmail = emailInput.value;
-        usernameInput.setAttribute("readonly", true);
-        emailInput.setAttribute("readonly", true);
-        saveCancelBtns.classList.add("hidden");
-        editBtn.classList.remove("hidden");
-        showToast("Profile updated successfully!");
+        try {
+          await apiClient.patch("users/update-user-info/", { username, email });
+          originalUsername = username;
+          originalEmail = email;
+          usernameInput.setAttribute("readonly", true);
+          emailInput.setAttribute("readonly", true);
+          saveCancelBtns.classList.add("hidden");
+          editBtn.classList.remove("hidden");
+          showToast("Profile updated successfully!");
+        } catch (err) {
+          showToast(err.response?.data?.error || "Profile update failed", true);
+          console.error(err);
+        }
       });
 
-      // Security modal
-      const securityModal = document.getElementById("securityModal");
+      // Modal helpers
+      function openModal(modal) {
+        modal.classList.add("active");
+        document.body.classList.add("modal-open");
+        if (modal === securityModalEl) secQuestionInput.focus();
+      }
+      function closeModal(modal) {
+        modal.classList.remove("active");
+        document.body.classList.remove("modal-open");
+        if (modal === securityModalEl) {
+          secQuestionInput.value = "";
+          secAnswerInput.value = "";
+        }
+      }
+
+      // Security Question Modal
       document
         .getElementById("securityBtn")
-        .addEventListener("click", () => securityModal.classList.add("active"));
+        .addEventListener("click", () => openModal(securityModalEl));
       document
         .getElementById("closeSecModal")
-        .addEventListener("click", () =>
-          securityModal.classList.remove("active")
-        );
-      document.getElementById("saveSecModal").addEventListener("click", () => {
-        const q = document.getElementById("secQuestion").value.trim();
-        const a = document.getElementById("secAnswer").value.trim();
-        if (!q || !a) {
-          showToast("Both question and answer required", true);
-          return;
-        }
-        securityModal.classList.remove("active");
-        showToast("Security question saved!");
-      });
+        .addEventListener("click", () => closeModal(securityModalEl));
+      document
+        .getElementById("saveSecModal")
+        .addEventListener("click", async () => {
+          const question = secQuestionInput.value.trim(),
+            answer = secAnswerInput.value.trim();
+          if (!question || !answer) {
+            showToast("Both question and answer are required", true);
+            return;
+          }
+          try {
+            await apiClient.patch("users/update-security-question/", {
+              security_question: question,
+              security_answer: answer,
+            });
+            showToast("Security question updated!");
+            closeModal(securityModalEl);
+          } catch (err) {
+            showToast(
+              err.response?.data?.error || "Failed to update security question",
+              true
+            );
+            console.error(err);
+          }
+        });
 
-      // Password modal
-      const passwordModal = document.getElementById("passwordModal");
+      // Password Modal
       document
         .getElementById("passwordBtn")
-        .addEventListener("click", () => passwordModal.classList.add("active"));
+        .addEventListener("click", () => openModal(passwordModalEl));
       document
         .getElementById("closePassModal")
-        .addEventListener("click", () =>
-          passwordModal.classList.remove("active")
-        );
-      document.getElementById("savePassModal").addEventListener("click", () => {
-        const oldPass = document.getElementById("oldPassword").value.trim();
-        const newPass = document.getElementById("newPassword").value.trim();
-        if (!oldPass || !newPass) {
-          showToast("Both old and new password required", true);
-          return;
-        }
-        passwordModal.classList.remove("active");
-        showToast("Password changed successfully!");
-      });
+        .addEventListener("click", () => closeModal(passwordModalEl));
+      document
+        .getElementById("savePassModal")
+        .addEventListener("click", async () => {
+          const oldPass = document.getElementById("oldPassword").value.trim(),
+            newPass = document.getElementById("newPassword").value.trim();
+          if (!oldPass || !newPass) {
+            showToast("Both old and new password required", true);
+            return;
+          }
+          try {
+            await apiClient.patch("users/change-password/", {
+              old_password: oldPass,
+              new_password: newPass,
+            });
+            showToast("Password changed successfully!");
+            closeModal(passwordModalEl);
+          } catch (err) {
+            showToast(
+              err.response?.data?.error || "Password update failed",
+              true
+            );
+            console.error(err);
+          }
+        });
 
       // Logout
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        showToast("Logged out");
-        setTimeout(() => location.reload(), 1000);
-      });
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", async () => {
+          try {
+            await apiClient.post("users/logout/");
+          } catch (_) {}
+          localStorage.removeItem("token");
+          showToast("Logged out");
+          setTimeout(() => (window.location.href = "/"), 1000);
+        });
     </script>
   </body>
 </html>

@@ -68,3 +68,11 @@ class UserService:
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return data
+    
+    @staticmethod
+    def change_password(user, old_password, new_password):
+        if not user.check_password(old_password):
+            return False
+        user.set_password(new_password)
+        user.save()
+        return True
