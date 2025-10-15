@@ -15,6 +15,8 @@ from .serializers import (
 from .models import Task
 from .services.user_service import UserService
 from .services.task_service import TaskService
+from rest_framework import serializers
+from django.contrib.auth.decorators import login_required
 
 
 # ---------------- Home ----------------
@@ -29,7 +31,6 @@ def profile(request):
     return render(request, "base/profile.html")
 
 
-# ---------------- TaskViewSet ----------------
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
@@ -57,8 +58,13 @@ class TaskViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def me(request):
+    user = request.user
+    return Response(UserSerializer(user).data)
 
-# ---------------- User Views ----------------
 @api_view(["POST"])
 def signup(request):
     username = request.data.get("username")
@@ -73,10 +79,10 @@ def signup(request):
         return Response({
             "token": token.key,
             "user": UserSerializer(user).data
-        }, status=201)
-    except Exception as e:
-        return Response({"error": str(e)}, status=400)
-
+        }, status=status.HTTP_201_CREATED)
+    except serializers.ValidationError as e:
+        messages = [str(msg) for msgs in e.detail.values() for msg in msgs]
+        return Response({"error": " ".join(messages)}, status=400)
 
 @api_view(["POST"])
 def login(request):
@@ -92,6 +98,22 @@ def login(request):
 
     return Response({"token": token.key, "user": UserSerializer(user).data})
 
+@api_view(["POST"])
+def verify_security_answer(request):
+    username = request.data.get("username")
+    security_answer = request.data.get("security_answer")
+
+    if not username or not security_answer:
+        return Response({"error": "Username and answer required"}, status=400)
+
+    user = User.objects.filter(username=username).first()
+    if not user or not hasattr(user, "profile"):
+        return Response({"error": "User not found"}, status=404)
+
+    if user.profile.security_answer.strip().lower() != security_answer.strip().lower():
+        return Response({"error": "Incorrect security answer"}, status=400)
+
+    return Response({"success": "Answer correct"})
 
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
@@ -169,6 +191,25 @@ def update_user_info(request):
     return Response({"success": "Profile updated successfully.", "updated_fields": updated_fields})
 
 
+@api_view(["PATCH"])
+@authentication_classes([TokenAuthentication, SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def change_password(request):   
+    user = request.user
+    old_password = request.data.get("old_password")
+    new_password = request.data.get("new_password")
+
+    if not old_password or not new_password:
+        return Response({"error": "Both old and new password are required."}, status=400)
+
+    try:
+        success = UserService.change_password(user, old_password, new_password)
+        if not success:
+            return Response({"error": "Old password is incorrect."}, status=400)
+        return Response({"success": "Password changed successfully."})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication, SessionAuthentication])
 @permission_classes([IsAuthenticated])
