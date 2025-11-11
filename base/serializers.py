@@ -6,8 +6,9 @@ from .models import Task, Profile
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at', 'deleted_at')
+        fields = ['id', 'title', 'description', 'due_datetime', 'priority', 'status', 'created_at', 'updated_at']
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -262,7 +262,7 @@
           });
           localStorage.setItem("token", data.token);
           showToast("Login successful!");
-          window.location.href = "/profile/";
+          window.location.href = "/home/";
         } catch (err) {
           showToast(err.response?.data?.error || "Invalid credentials", true);
         }
@@ -294,7 +294,7 @@
           }
 
           showToast("Registration successful!");
-          window.location.href = "/profile/";
+          window.location.href = "/home/";
         } catch (err) {
           let message = "Something went wrong.";
 
@@ -399,6 +399,14 @@
       function showForgotPassword() {
         toggleForms("forgotPassword");
       }
+
+      (function redirectIfLoggedIn() {
+        const token = localStorage.getItem("token");
+        if (token) {
+          window.location.href = "/home/";
+        }
+      })();
+
     </script>
   </body>
 </html>

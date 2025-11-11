@@ -1,16 +1,24 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JUST DO IT - To Do List</title>
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
+    <!-- Axios core + configured client -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{% static 'js/axios.js' %}"></script>
+
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -75,20 +83,18 @@
         opacity: 0;
         transform: translateY(20px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.3s ease, opacity 0.3s ease,
+          box-shadow 0.3s ease;
         z-index: 1000;
       }
-
       .backToTop.show {
         opacity: 1;
         transform: translateY(0);
       }
-
       .backToTop:hover {
         transform: translateY(-2px) scale(1.05);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
       }
-
       .task-card {
         transition: all 0.2s ease;
         position: relative;
@@ -165,7 +171,7 @@
     class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-900 text-gray-100"
   >
     <div class="flex p-4 gap-6">
-      <!-- Sidebar -->
+      <!-- SIDEBAR -->
       <nav
         class="w-80 bg-gray-900/80 rounded-2xl shadow-xl p-6 flex flex-col gap-8 sticky top-4 h-[calc(100vh-2rem)] overflow-y-auto"
       >
@@ -189,7 +195,7 @@
         </header>
 
         <!-- Search Bar -->
-        <div class="search-container">
+        <div class="search-container mt-4">
           <input
             id="searchInput"
             type="text"
@@ -201,7 +207,7 @@
         <!-- Add Task -->
         <button
           id="addTaskBtn"
-          class="flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition-all duration-200 hover:shadow-xl"
+          class="mt-4 flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition-all duration-200 hover:shadow-xl"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -218,8 +224,8 @@
           Add New Task
         </button>
 
-        <!-- Priorities -->
-        <div>
+        <!-- Priority Filters -->
+        <div class="mt-6">
           <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">
             Filter by Priority
           </h3>
@@ -229,7 +235,7 @@
           </p>
         </div>
 
-        <!-- Task Completion -->
+        <!-- Completion Summary -->
         <div
           class="mt-auto bg-gradient-to-br from-gray-800 to-gray-700 p-4 rounded-xl border border-gray-600"
         >
@@ -249,7 +255,7 @@
         </div>
       </nav>
 
-      <!-- Main Content -->
+      <!-- MAIN CONTENT -->
       <main
         class="flex-1 bg-gray-900/80 rounded-2xl shadow-xl p-8 overflow-auto"
       >
@@ -277,13 +283,13 @@
               id="sortOrderBtn"
               class="bg-gray-700 text-white px-3 py-2 rounded hover:bg-gray-600 transition-all duration-200"
             >
-              <span class="flex items-center"> ⬆ Asc </span>
+              <span class="flex items-center">⬆ Asc</span>
             </button>
           </div>
         </div>
+
         <div class="grid grid-cols-3 gap-6" id="toDoBoard"></div>
 
-        <!-- No Results Message -->
         <div id="noResults" class="hidden text-center py-12">
           <div class="text-gray-500 text-lg mb-2">No tasks found</div>
           <div class="text-gray-600 text-sm">
@@ -293,7 +299,7 @@
       </main>
     </div>
 
-    <!-- Task Modal -->
+    <!-- TASK MODAL -->
     <div
       id="taskModal"
       class="modal fixed inset-0 bg-black/60 items-center justify-center z-50"
@@ -302,7 +308,6 @@
         <h2 id="modalTitle" class="text-xl font-bold text-white mb-4">
           Add Task
         </h2>
-
         <div class="w-full mb-3">
           <label for="taskTitle" class="block text-gray-400 text-sm mb-1"
             >Task Title</label
@@ -315,9 +320,10 @@
             maxlength="100"
           />
         </div>
-
         <div class="w-full mb-3">
-          <label for="taskDescription" class="block text-gray-400 text-sm mb-1"
+          <label
+            for="taskDescription"
+            class="block text-gray-400 text-sm mb-1"
             >Task Description</label
           >
           <textarea
@@ -328,7 +334,6 @@
             maxlength="500"
           ></textarea>
         </div>
-
         <div class="w-full mb-3">
           <label for="taskStatus" class="block text-gray-400 text-sm mb-1"
             >Status</label
@@ -342,7 +347,6 @@
             <option>Completed</option>
           </select>
         </div>
-
         <div class="w-full mb-3">
           <label for="taskPriority" class="block text-gray-400 text-sm mb-1"
             >Priority</label
@@ -356,7 +360,6 @@
             <option>Low</option>
           </select>
         </div>
-
         <div class="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label for="taskDueDate" class="block text-gray-400 text-sm mb-1"
@@ -379,7 +382,6 @@
             />
           </div>
         </div>
-
         <div class="flex justify-end gap-2">
           <button
             id="closeModal"
@@ -397,7 +399,7 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- DELETE MODAL -->
     <div
       id="deleteModal"
       class="modal fixed inset-0 bg-black/60 items-center justify-center z-50"
@@ -425,10 +427,10 @@
       </div>
     </div>
 
-    <!-- Toast -->
+    <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
-    <!-- Back to Top Button -->
+    <!-- BACK TO TOP -->
     <button
       id="backToTop"
       class="backToTop"
@@ -450,10 +452,20 @@
     </button>
 
     <script>
+      // Fallback: if axios.js didn't define apiClient, define a basic one
+      if (typeof window.apiClient === "undefined") {
+        const token = localStorage.getItem("token");
+        window.apiClient = axios.create({
+          baseURL: "/api/",
+          headers: token ? { Authorization: `Token ${token}` } : {},
+        });
+      }
+
       const config = {
         columns: ["Not Started", "In Progress", "Completed"],
         priorityOrder: { High: 1, Mid: 2, Low: 3 },
-        API_BASE: "http://127.0.0.1:8000/api/tasks/",
+        // axios.js has baseURL="/api/", so we just hit "tasks/"
+        API_BASE: "tasks/",
         priorities: ["High", "Mid", "Low"],
         priorityColors: {
           High: "text-red-400",
@@ -462,7 +474,6 @@
         },
       };
 
-      //document object models items
       const DOM = {
         board: document.getElementById("toDoBoard"),
         modal: document.getElementById("taskModal"),
@@ -476,7 +487,6 @@
         priorityStats: document.getElementById("priorityStats"),
         sortSelect: document.getElementById("sortSelect"),
         sortOrderBtn: document.getElementById("sortOrderBtn"),
-
         form: {
           title: document.getElementById("taskTitle"),
           description: document.getElementById("taskDescription"),
@@ -485,7 +495,6 @@
           dueDate: document.getElementById("taskDueDate"),
           dueTime: document.getElementById("taskDueTime"),
         },
-
         buttons: {
           addTask: document.getElementById("addTaskBtn"),
           closeModal: document.getElementById("closeModal"),
@@ -493,13 +502,11 @@
           cancelDelete: document.getElementById("cancelDeleteBtn"),
           confirmDelete: document.getElementById("confirmDeleteBtn"),
         },
-
         text: {
           modalTitle: document.getElementById("modalTitle"),
         },
       };
 
-      //states
       const state = {
         tasks: [],
         editId: null,
@@ -512,7 +519,6 @@
         toastTimeout: null,
       };
 
-      //utility functions
       const utils = {
         parseLocalDateTime: (dateTimeString) => {
           if (!dateTimeString) return null;
@@ -521,7 +527,6 @@
           const [h, min] = time.split(":").map(Number);
           return new Date(y, m - 1, d, h, min);
         },
-
         formatDueDate: (dueStr) => {
           const dateTime = utils.parseLocalDateTime(dueStr);
           if (!dateTime) return "No due date";
@@ -534,13 +539,10 @@
             minute: "2-digit",
           })}`;
         },
-
-        getPriorityColor: (priorityLevel) => {
-          return config.priorityColors[priorityLevel] || "";
-        },
+        getPriorityColor: (priorityLevel) =>
+          config.priorityColors[priorityLevel] || "",
       };
 
-      //helper function
       const helpers = {
         showToast: (
           msg,
@@ -549,30 +551,26 @@
           undoCallback = null
         ) => {
           clearTimeout(state.toastTimeout);
-
           DOM.toast.className = "toast show";
           DOM.toast.style.background = isError ? "#dc2626" : "#059669";
 
           if (showUndo && undoCallback) {
             DOM.toast.innerHTML = `
-                    <span>${msg}</span>
-                    <button class="toast-undo-btn" onclick="(${undoCallback.toString()})()">Undo</button>
-                  `;
+              <span>${msg}</span>
+              <button class="toast-undo-btn">Undo</button>
+            `;
+            const btn = DOM.toast.querySelector(".toast-undo-btn");
+            btn.onclick = () => {
+              undoCallback();
+            };
           } else {
             DOM.toast.textContent = msg;
           }
 
-          state.toastTimeout = setTimeout(
-            () => {
-              DOM.toast.classList.remove("show");
-              if (showUndo) {
-                setTimeout(() => {
-                  state.deletedTask = null;
-                }, 300);
-              }
-            },
-            showUndo ? 5000 : 3000
-          );
+          state.toastTimeout = setTimeout(() => {
+            DOM.toast.classList.remove("show");
+            if (showUndo) state.deletedTask = null;
+          }, showUndo ? 5000 : 3000);
         },
 
         matchesSearch: (task, term) => {
@@ -580,14 +578,12 @@
           const lower = term.toLowerCase();
           return (
             task.title.toLowerCase().includes(lower) ||
-            (task.description?.toLowerCase().includes(lower) ?? false)
+            (task.description || "").toLowerCase().includes(lower)
           );
         },
 
-        matchesPriority: (task, priority) => {
-          if (!priority) return true;
-          return task.priority === priority;
-        },
+        matchesPriority: (task, priority) =>
+          !priority || task.priority === priority,
 
         filterTasks: (taskList) =>
           taskList.filter(
@@ -598,79 +594,70 @@
 
         sortTasks: (taskList, sortBy, order = "asc") => {
           const sorted = [...taskList];
-
           const comparators = {
-            createdAt: (taskA, taskB) =>
-              new Date(taskA.created_at) - new Date(taskB.created_at),
-            dueDate: (taskA, taskB) =>
-              new Date(taskA.due_datetime || 0) -
-              new Date(taskB.due_datetime || 0),
-            priority: (taskA, taskB) =>
-              config.priorityOrder[taskA.priority] -
-              config.priorityOrder[taskB.priority],
+            createdAt: (a, b) =>
+              new Date(a.created_at) - new Date(b.created_at),
+            dueDate: (a, b) =>
+              new Date(a.due_datetime || 0) - new Date(b.due_datetime || 0),
+            priority: (a, b) =>
+              config.priorityOrder[a.priority] -
+              config.priorityOrder[b.priority],
           };
-
           const compareFn = comparators[sortBy];
           if (compareFn) sorted.sort(compareFn);
           if (order === "desc") sorted.reverse();
-
           return sorted;
         },
 
-        buildFilterItem: (
-          label,
-          count,
-          color = "",
-          isActive = false,
-          onClick
-        ) => {
+        buildFilterItem: (label, count, color, isActive, onClick) => {
           const li = document.createElement("li");
           li.className = `priority-filter flex justify-between p-3 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-all ${
             isActive ? "active" : ""
           }`;
-          li.innerHTML = `<span class="${color}">${label}</span><span class="bg-gray-600 px-2 py-1 rounded-full text-xs">${count}</span>`;
+          li.innerHTML = `<span class="${color}">${label}</span>
+                          <span class="bg-gray-600 px-2 py-1 rounded-full text-xs">${count}</span>`;
           li.onclick = onClick;
           return li;
         },
       };
 
-      //component builders
       const components = {
         createTaskCard: (task) => {
           const card = document.createElement("div");
           card.className = `task-card priority-${task.priority.toLowerCase()} p-3 bg-gray-700 rounded-lg shadow hover:scale-105 transition-all duration-200 fade-in`;
           card.dataset.id = task.id;
           card.innerHTML = `
-                  <h3 class="font-semibold text-white">${task.title}</h3>
-                  <p class="text-gray-300 text-xs mb-2">Date added: ${
-                    utils.formatDueDate(task.created_at) || ""
-                  }</p>
-                  <p class="text-gray-300 text-sm">${task.description || ""}</p>
-                  <p class="text-sm text-gray-400">
-                    <span class="${utils.getPriorityColor(task.priority)}">${
-            task.priority
-          }</span> • Due: ${utils.formatDueDate(task.due_datetime)}
-                  </p>
-                  <div class="flex gap-2 mt-2 items-center">
-                    <select onchange="api.markAsDone(${
-                      task.id
-                    },this.value)" class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500">
-                      ${config.columns
-                        .map(
-                          (s) =>
-                            `<option ${
-                              task.status === s ? "selected" : ""
-                            }>${s}</option>`
-                        )
-                        .join("")}
-                    </select>
-                    <button onclick="handlers.editTask(${
-                      task.id
-                    })" class="p-1 text-yellow-300 hover:text-yellow-200" title="Edit">✎</button>
-                    <button onclick="handlers.showDeleteModal(${
-                      task.id
-                    })" class="p-1 text-red-400 hover:text-red-300" title="Delete">🗑</button>
-                  </div>`;
+            <h3 class="font-semibold text-white">${task.title}</h3>
+            <p class="text-gray-300 text-xs mb-2">
+              Date added: ${utils.formatDueDate(task.created_at)}
+            </p>
+            <p class="text-gray-300 text-sm">${task.description || ""}</p>
+            <p class="text-sm text-gray-400">
+              <span class="${utils.getPriorityColor(task.priority)}">
+                ${task.priority}
+              </span>
+              • Due: ${utils.formatDueDate(task.due_datetime)}
+            </p>
+            <div class="flex gap-2 mt-2 items-center">
+              <select class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500"
+                      onchange="api.markAsDone(${task.id}, this.value)">
+                ${config.columns
+                  .map(
+                    (s) =>
+                      `<option ${
+                        task.status === s ? "selected" : ""
+                      }>${s}</option>`
+                  )
+                  .join("")}
+              </select>
+              <button onclick="handlers.editTask(${
+                task.id
+              })" class="p-1 text-yellow-300 hover:text-yellow-200" title="Edit">✎</button>
+              <button onclick="handlers.showDeleteModal(${
+                task.id
+              })" class="p-1 text-red-400 hover:text-red-300" title="Delete">🗑</button>
+            </div>
+          `;
           return card;
         },
 
@@ -679,10 +666,10 @@
           colDiv.className =
             "bg-gray-800 rounded-xl p-4 flex flex-col gap-3 min-h-[400px] slide-up";
           colDiv.innerHTML = `<h2 class="font-bold text-lg text-white mb-2">${name}</h2>`;
-          tasks.forEach((currentTask, index) =>
+          tasks.forEach((t, i) =>
             setTimeout(
-              () => colDiv.appendChild(components.createTaskCard(currentTask)),
-              index * 50
+              () => colDiv.appendChild(components.createTaskCard(t)),
+              i * 50
             )
           );
           return colDiv;
@@ -690,7 +677,6 @@
 
         renderBoard: () => {
           DOM.board.innerHTML = "";
-
           const filtered = helpers.filterTasks(state.tasks);
           const sortBy = DOM.sortSelect.value;
           const sorted = helpers.sortTasks(filtered, sortBy, state.sortOrder);
@@ -698,13 +684,15 @@
           const hasTasks = sorted.length > 0;
           DOM.board.classList.toggle("hidden", !hasTasks);
           DOM.noResults.classList.toggle("hidden", hasTasks);
-
-          if (!hasTasks) return;
-
-          for (const col of config.columns) {
-            const colTasks = sorted.filter((task) => task.status === col);
-            DOM.board.appendChild(components.renderColumn(col, colTasks));
+          if (!hasTasks) {
+            components.updateStats(filtered);
+            return;
           }
+
+          config.columns.forEach((col) => {
+            const colTasks = sorted.filter((t) => t.status === col);
+            DOM.board.appendChild(components.renderColumn(col, colTasks));
+          });
 
           components.updateStats(filtered);
         },
@@ -721,15 +709,12 @@
             : "0%";
 
           const counts = { All: state.tasks.length };
-          config.priorities.forEach((priority) => {
-            counts[priority] = state.tasks.filter(
-              (t) => t.priority === priority
-            ).length;
+          config.priorities.forEach((p) => {
+            counts[p] = state.tasks.filter((t) => t.priority === p).length;
           });
 
           DOM.priorityStats.innerHTML = "";
 
-          // Build filter items using configuration
           const filterConfigs = [
             {
               label: "All Tasks",
@@ -737,11 +722,11 @@
               color: "",
               isActive: !state.currentPriorityFilter,
             },
-            ...config.priorities.map((priority) => ({
-              label: `${priority} Priority`,
-              key: priority,
-              color: utils.getPriorityColor(priority),
-              isActive: state.currentPriorityFilter === priority,
+            ...config.priorities.map((p) => ({
+              label: `${p} Priority`,
+              key: p,
+              color: utils.getPriorityColor(p),
+              isActive: state.currentPriorityFilter === p,
             })),
           ];
 
@@ -762,11 +747,11 @@
         },
       };
 
-      //api operations
       const api = {
         fetchTasks: async () => {
           try {
-            state.tasks = (await axios.get(config.API_BASE)).data;
+            const res = await apiClient.get(config.API_BASE);
+            state.tasks = res.data;
             components.renderBoard();
           } catch (e) {
             helpers.showToast("Error fetching tasks", true);
@@ -790,6 +775,7 @@
             helpers.showToast("Enter due date & time", true);
             return null;
           }
+
           return {
             title,
             description,
@@ -802,9 +788,8 @@
         addTask: async () => {
           const payload = api.getTaskFormData();
           if (!payload) return;
-
           try {
-            const res = await axios.post(config.API_BASE, payload);
+            const res = await apiClient.post(config.API_BASE, payload);
             if (res.status === 201) {
               state.tasks.push(res.data);
               helpers.showToast("Task added");
@@ -820,11 +805,13 @@
         updateTask: async (id) => {
           const payload = api.getTaskFormData();
           if (!payload) return;
-
           try {
-            const res = await axios.put(`${config.API_BASE}${id}/`, payload);
+            const res = await apiClient.put(
+              `${config.API_BASE}${id}/`,
+              payload
+            );
             if (res.status === 200) {
-              const index = state.tasks.findIndex((task) => task.id === id);
+              const index = state.tasks.findIndex((t) => t.id === id);
               if (index !== -1) state.tasks[index] = res.data;
               helpers.showToast("Task updated");
               state.editId = null;
@@ -839,47 +826,34 @@
 
         markAsDone: async (id, status) => {
           try {
-            const res = await axios.patch(config.API_BASE + id + "/", {
-              status,
-            });
-            state.tasks[
-              state.tasks.findIndex((currentTask) => currentTask.id === id)
-            ] = res.data;
+            const res = await apiClient.patch(
+              `${config.API_BASE}${id}/`,
+              { status }
+            );
+            const idx = state.tasks.findIndex((t) => t.id === id);
+            if (idx !== -1) state.tasks[idx] = res.data;
             components.renderBoard();
 
-            const statusMessagesDiscordDaddy = {
+            const statusMessages = {
               "Not Started": [
-                "Back to the start, kitten. Daddy's watching 😏",
-                "Not started yet? Daddy believes in you… sorta 😅",
-                "Fresh start, kitten. Daddy says grab a snack and go 🍕",
+                "Back to the start—fresh reset!",
+                "Not started yet. You’ve got this.",
               ],
               "In Progress": [
-                "Getting somewhere, kitten! Daddy is proud-ish 🐱",
-                "Making progress! Daddy got off his chair to see this 😎",
-                "Task is rolling! Don't make Daddy regret giving you mod powers 😏",
+                "Nice, it’s moving!",
+                "Progress looks good—keep going!",
               ],
               Completed: [
-                "Finally done, kitten! Daddy's proud! Treat yourself 🍩",
-                "Task completed! Daddy might shed a tear 😹",
-                "Well done, kitten. Daddy approves… snacks for you 🐱🎉",
+                "Task completed. Sweet.",
+                "Done and dusted. On to the next!",
               ],
-              default: [
-                "Status updated, kitten. Daddy sees you doing… okay 😏",
-              ],
+              default: ["Status updated."],
             };
 
-            const getRandomMessageByStatus = (status) => {
-              const messages =
-                statusMessagesDiscordDaddy[status] ||
-                statusMessagesDiscordDaddy.default;
-              return messages[Math.floor(Math.random() * messages.length)];
-            };
-
-            // Usage
-            let message = `Task is now ${status.toLowerCase()}. ${getRandomMessageByStatus(
-              status
-            )}`;
-            helpers.showToast(message);
+            const msgs =
+              statusMessages[status] || statusMessages["default"];
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+            helpers.showToast(`Task is now ${status}. ${msg}`);
           } catch (e) {
             helpers.showToast("Error updating status", true);
             console.error(e);
@@ -889,29 +863,25 @@
         deleteTask: async () => {
           if (!state.taskToDelete) return;
           try {
-            // Store the task before deletion for potential undo
             const taskToDelete = state.tasks.find(
-              (currentTask) => currentTask.id === state.taskToDelete
+              (t) => t.id === state.taskToDelete
             );
             state.deletedTask = { ...taskToDelete };
 
-            await axios.delete(config.API_BASE + state.taskToDelete + "/");
+            await apiClient.delete(
+              `${config.API_BASE}${state.taskToDelete}/`
+            );
             state.tasks = state.tasks.filter(
-              (currentTask) => currentTask.id !== state.taskToDelete
+              (t) => t.id !== state.taskToDelete
             );
             state.taskToDelete = null;
             DOM.deleteModal.classList.remove("active");
 
-            // Show toast with undo button
             helpers.showToast(
               "Task deleted",
               false,
               true,
-              function undoDelete() {
-                if (state.deletedTask) {
-                  api.restoreTask(state.deletedTask);
-                }
-              }
+              () => api.restoreTask(state.deletedTask)
             );
 
             components.renderBoard();
@@ -923,25 +893,22 @@
 
         restoreTask: async (taskData) => {
           if (!taskData?.id) return;
-
           try {
-            const res = await axios.post(
+            const res = await apiClient.post(
               `${config.API_BASE}${taskData.id}/restore/`
             );
-
             if (res.status === 200 && res.data) {
-              const index = state.tasks.findIndex((t) => t.id === taskData.id);
-              if (index !== -1) {
-                state.tasks[index] = res.data;
+              const idx = state.tasks.findIndex(
+                (t) => t.id === taskData.id
+              );
+              if (idx !== -1) {
+                state.tasks[idx] = res.data;
               } else {
                 state.tasks.push(res.data);
               }
-
               state.deletedTask = null;
-
               DOM.toast.classList.remove("show");
               clearTimeout(state.toastTimeout);
-
               helpers.showToast("Task restored");
               components.renderBoard();
             } else {
@@ -954,18 +921,18 @@
         },
       };
 
-      //modal
+      // expose for inline handlers
+      window.api = api;
+
       const modal = {
         openModal: (isEdit) => {
           DOM.modal.classList.add("active");
           if (!isEdit) modal.resetModal();
         },
-
         closeModal: () => {
           DOM.modal.classList.remove("active");
           setTimeout(modal.resetModal, 300);
         },
-
         resetModal: () => {
           DOM.form.title.value = "";
           DOM.form.description.value = "";
@@ -978,16 +945,12 @@
         },
       };
 
-      //event handlers
       const handlers = {
         addTask: () => modal.openModal(false),
         closeModal: () => modal.closeModal(),
         saveTask: () => {
-          if (state.editId) {
-            api.updateTask(state.editId);
-          } else {
-            api.addTask();
-          }
+          if (state.editId) api.updateTask(state.editId);
+          else api.addTask();
         },
         cancelDelete: () => {
           state.taskToDelete = null;
@@ -1010,12 +973,19 @@
           }, 300);
         },
         titleInput: (e) => {
-          const r = 100 - e.target.value.length;
+          const remaining = 100 - e.target.value.length;
           e.target.style.borderColor =
-            r < 20 ? (r < 0 ? "#dc2626" : "#f59e0b") : "";
+            remaining < 20
+              ? remaining < 0
+                ? "#dc2626"
+                : "#f59e0b"
+              : "";
         },
         scroll: () => {
-          DOM.backToTopBtn.classList.toggle("show", window.scrollY > 100);
+          DOM.backToTopBtn.classList.toggle(
+            "show",
+            window.scrollY > 100
+          );
         },
         backToTop: () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1032,7 +1002,7 @@
           if (task.due_datetime) {
             const [d, t] = task.due_datetime.split("T");
             DOM.form.dueDate.value = d;
-            DOM.form.dueTime.value = t?.slice(0, 5) || "";
+            DOM.form.dueTime.value = t ? t.slice(0, 5) : "";
           }
 
           DOM.text.modalTitle.textContent = "Edit Task";
@@ -1044,10 +1014,15 @@
         },
       };
 
-      //event listeners
+      // expose for inline handlers
+      window.handlers = handlers;
+
       const initializeEventListeners = () => {
         DOM.buttons.addTask.addEventListener("click", handlers.addTask);
-        DOM.buttons.closeModal.addEventListener("click", handlers.closeModal);
+        DOM.buttons.closeModal.addEventListener(
+          "click",
+          handlers.closeModal
+        );
         DOM.buttons.saveTask.addEventListener("click", handlers.saveTask);
         DOM.buttons.cancelDelete.addEventListener(
           "click",
@@ -1058,10 +1033,22 @@
           handlers.confirmDelete
         );
         DOM.sortSelect.addEventListener("change", handlers.sortChange);
-        DOM.sortOrderBtn.addEventListener("click", handlers.sortOrderToggle);
-        DOM.searchInput.addEventListener("input", handlers.searchInput);
-        DOM.form.title.addEventListener("input", handlers.titleInput);
-        DOM.backToTopBtn.addEventListener("click", handlers.backToTop);
+        DOM.sortOrderBtn.addEventListener(
+          "click",
+          handlers.sortOrderToggle
+        );
+        DOM.searchInput.addEventListener(
+          "input",
+          handlers.searchInput
+        );
+        DOM.form.title.addEventListener(
+          "input",
+          handlers.titleInput
+        );
+        DOM.backToTopBtn.addEventListener(
+          "click",
+          handlers.backToTop
+        );
         window.addEventListener("scroll", handlers.scroll);
       };
 

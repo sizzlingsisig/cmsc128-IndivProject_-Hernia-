@@ -33,28 +33,50 @@ def profile(request):
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        include_deleted = self.request.query_params.get("deleted", "false").lower() == "true"
-        return Task.global_objects.all() if include_deleted else Task.objects.all()
+        # Return tasks only for the logged-in user's profile
+        user = self.request.user
+        if not hasattr(user, "profile"):
+            return Task.objects.none()
+        return Task.objects.filter(profile=user.profile)
 
-    def destroy(self, request, *args, **kwargs):
-        try:
-            TaskService.delete_task(self.get_object())
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist:
-            return Response({"error": "Task not found."}, status=404)
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
+    def perform_create(self, serializer):
+        # Always attach the task to the current user's profile
+        if not hasattr(self.request.user, "profile"):
+            raise PermissionDenied("No profile found for this user.")
+        serializer.save(profile=self.request.user.profile)
+
+    def perform_update(self, serializer):
+        # Ensure user owns the task being edited
+        instance = self.get_object()
+        if instance.profile != self.request.user.profile:
+            raise PermissionDenied("You cannot edit this task.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # Ensure user owns the task being deleted
+        if instance.profile != self.request.user.profile:
+            raise PermissionDenied("You cannot delete this task.")
+        instance.delete()
 
     @action(detail=True, methods=["post"])
     def restore(self, request, pk=None):
+        """
+        Optional: restore soft-deleted task, but only if it belongs to current user.
+        """
         try:
             task = TaskService.restore_task(pk)
+            if task.profile != request.user.profile:
+                raise PermissionDenied("You cannot restore this task.")
             serializer = self.get_serializer(task)
             return Response(serializer.data)
         except ObjectDoesNotExist:
             return Response({"error": "Task not found."}, status=404)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
