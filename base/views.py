@@ -35,8 +35,46 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     def get_queryset(self):
+        user = self.request.user
+        profile = getattr(user, "profile", None)
+        if not profile:
+            return Task.objects.none()  # no profile, no tasks
+
         include_deleted = self.request.query_params.get("deleted", "false").lower() == "true"
-        return Task.global_objects.all() if include_deleted else Task.objects.all()
+        qs = Task.global_objects.all() if include_deleted else Task.objects.all()
+        return qs.filter(assignees=profile)
+
+    def perform_create(self, serializer):
+        task = serializer.save()
+        profile = getattr(self.request.user, "profile", None)
+        if profile:
+            task.assignees.add(profile)
+
+    @action(detail=True, methods=["post"])
+    def add_assignee(self, request, pk=None):
+        task = self.get_object()
+        profile_id = request.data.get("profile_id")
+        if not profile_id:
+            return Response({"error": "profile_id is required."}, status=400)
+        try:
+            profile = Profile.objects.get(id=profile_id)
+            task.assignees.add(profile)
+            return Response({"success": f"{profile.user.username} added to task."})
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=404)
+
+    @action(detail=True, methods=["post"])
+    def remove_assignee(self, request, pk=None):
+        task = self.get_object()
+        profile_id = request.data.get("profile_id")
+        if not profile_id:
+            return Response({"error": "profile_id is required."}, status=400)
+        try:
+            profile = Profile.objects.get(id=profile_id)
+            task.assignees.remove(profile)
+            return Response({"success": f"{profile.user.username} removed from task."})
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=404)
 
     def destroy(self, request, *args, **kwargs):
         try:

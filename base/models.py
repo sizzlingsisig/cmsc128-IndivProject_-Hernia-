@@ -25,7 +25,7 @@ class Task(SoftDeleteModel):
 
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='tasks', null=True, blank=True)
+    assignees = models.ManyToManyField(Profile, related_name='tasks', blank=True)
     description = models.TextField(null=True, blank=True)
     due_datetime = models.DateTimeField(null=True, blank=True)
     priority = models.CharField(
