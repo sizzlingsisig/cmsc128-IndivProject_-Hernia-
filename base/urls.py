@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    home, auth, TaskViewSet,
+    CollaborativeListViewSet, home, auth, TaskViewSet,
     profile, signup, login, test_token,
     get_security_question, reset_password, update_security_question,
     update_user_info, logout, verify_security_answer , me, change_password
@@ -10,6 +10,7 @@ from .views import (
 # Router for tasks
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'collaborative-lists', CollaborativeListViewSet, basename='collaborative-list')
 
 # User endpoint patterns grouped under /api/users/
 user_patterns = [

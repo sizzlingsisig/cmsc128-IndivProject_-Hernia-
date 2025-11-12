@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -12,11 +13,52 @@ from .serializers import (
     TaskSerializer,
     SetSecurityQuestionSerializer,
 )
-from .models import Task
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from .serializers import CollaborativeListSerializer
+
+from .models import Task, CollaborativeList
 from .services.user_service import UserService
 from .services.task_service import TaskService
 from rest_framework import serializers
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
+class CollaborativeListViewSet(viewsets.ModelViewSet):
+    serializer_class = CollaborativeListSerializer
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        if not hasattr(user, "profile"):
+            return CollaborativeList.objects.none()
+        
+        return CollaborativeList.objects.filter(
+            Q(owner=user.profile) | Q(members=user.profile)
+        ).distinct()
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user.profile)
+    
+    @action(detail=True, methods=['post'])  
+    def add_member(self, request, pk=None):
+        collab_list = self.get_object()
+        if collab_list.owner != request.user.profile:
+            return Response({"error": "Only owner can add members"}, status=403)
+        
+        username = request.data.get('username')
+        if not username:
+            return Response({"error": "Username required"}, status=400)
+        
+        try:
+            user = User.objects.get(username=username)
+            if not hasattr(user, 'profile'):
+                return Response({"error": "User has no profile"}, status=404)
+            
+            collab_list.members.add(user.profile)
+            return Response({"success": f"Added {username} to list"})
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
 
 
 # ---------------- Home ----------------
@@ -37,18 +79,54 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Return tasks only for the logged-in user's profile
         user = self.request.user
         if not hasattr(user, "profile"):
             return Task.objects.none()
-        return Task.objects.filter(profile=user.profile)
+        
+        view_type = self.request.query_params.get('view', 'personal')
+        
+        if view_type == 'collaborative':
+            accessible_lists = CollaborativeList.objects.filter(
+                Q(owner=user.profile) | Q(members=user.profile)
+            )
+            
+            list_id = self.request.query_params.get('list_id')
+            
+            if list_id:
+                # Filter by specific list
+                return Task.objects.filter(
+                    collaborative_list_id=list_id,
+                    collaborative_list__in=accessible_lists  # Security check
+                )
+            else:
+                # Return all accessible tasks
+                return Task.objects.filter(collaborative_list__in=accessible_lists)
+        else:
+            return Task.objects.filter(
+                profile=user.profile,
+                collaborative_list__isnull=True
+            )
 
     def perform_create(self, serializer):
-        # Always attach the task to the current user's profile
-        if not hasattr(self.request.user, "profile"):
-            raise PermissionDenied("No profile found for this user.")
-        serializer.save(profile=self.request.user.profile)
-
+        """Create task in personal or collaborative list"""
+        collab_list_id = self.request.data.get('collaborative_list_id')
+        
+        if collab_list_id:
+            # Creating in collaborative list
+            try:
+                collab_list = CollaborativeList.objects.get(id=collab_list_id)
+                # Check if user has access
+                if (collab_list.owner != self.request.user.profile and 
+                    self.request.user.profile not in collab_list.members.all()):
+                    raise PermissionDenied("No access to this list")
+                
+                serializer.save(collaborative_list=collab_list, created_by=self.request.user.profile)
+            except CollaborativeList.DoesNotExist:
+                raise ValidationError("Collaborative list not found")
+        else:
+            # Personal task
+            serializer.save(profile=self.request.user.profile, created_by=self.request.user.profile)
+            
     def perform_update(self, serializer):
         # Ensure user owns the task being edited
         instance = self.get_object()

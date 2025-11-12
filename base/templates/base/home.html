@@ -83,8 +83,7 @@
         opacity: 0;
         transform: translateY(20px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        transition: transform 0.3s ease, opacity 0.3s ease,
-          box-shadow 0.3s ease;
+        transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
         z-index: 1000;
       }
       .backToTop.show {
@@ -165,6 +164,15 @@
         transform: scale(1.01);
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
       }
+      .view-btn.active {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      }
+      .member-item {
+        transition: all 0.2s ease;
+      }
+      .member-item:hover {
+        background: rgba(75, 85, 99, 0.5);
+      }
     </style>
   </head>
   <body
@@ -173,7 +181,7 @@
     <div class="flex p-4 gap-6">
       <!-- SIDEBAR -->
       <nav
-        class="w-80 bg-gray-900/80 rounded-2xl shadow-xl p-6 flex flex-col gap-8 sticky top-4 h-[calc(100vh-2rem)] overflow-y-auto"
+        class="w-80 bg-gray-900/80 px-6 flex flex-col gap-6 h-screen overflow-y-auto sticky top-0"
       >
         <header class="flex items-center">
           <svg
@@ -195,7 +203,7 @@
         </header>
 
         <!-- Search Bar -->
-        <div class="search-container mt-4">
+        <div class="search-container">
           <input
             id="searchInput"
             type="text"
@@ -207,7 +215,7 @@
         <!-- Add Task -->
         <button
           id="addTaskBtn"
-          class="mt-4 flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition-all duration-200 hover:shadow-xl"
+          class="flex items-center justify-center gap-2 px-6 py-3 text-white font-semibold rounded-xl shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 transition-all duration-200 hover:shadow-xl"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +233,7 @@
         </button>
 
         <!-- Priority Filters -->
-        <div class="mt-6">
+        <div>
           <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">
             Filter by Priority
           </h3>
@@ -235,9 +243,17 @@
           </p>
         </div>
 
+        <!-- Profile Button -->
+        <button
+          id="profileBtn"
+          class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-all"
+        >
+          Profile Settings
+        </button>
+
         <!-- Completion Summary -->
         <div
-          class="mt-auto bg-gradient-to-br from-gray-800 to-gray-700 p-4 rounded-xl border border-gray-600"
+          class="mt-2 bg-gradient-to-br from-gray-800 to-gray-700 p-4 rounded-xl border border-gray-600"
         >
           <h4 class="font-semibold text-white mb-2">Task Completion</h4>
           <div class="flex items-center gap-3">
@@ -259,6 +275,7 @@
       <main
         class="flex-1 bg-gray-900/80 rounded-2xl shadow-xl p-8 overflow-auto"
       >
+        <!-- Header with View Toggle -->
         <div class="flex justify-between items-center mb-6 gap-3">
           <div>
             <h1
@@ -271,6 +288,20 @@
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <!-- View Toggle Buttons -->
+            <button
+              id="personalViewBtn"
+              class="view-btn active px-4 py-2 rounded-lg font-semibold text-white shadow-md transition-all hover:scale-105"
+            >
+              Personal
+            </button>
+            <button
+              id="collaborativeViewBtn"
+              class="view-btn px-4 py-2 rounded-lg font-medium text-gray-300 bg-gray-800 shadow-md transition-all hover:scale-105"
+            >
+              Collaborative
+            </button>
+
             <select
               id="sortSelect"
               class="bg-gray-700 text-white p-2 rounded transition-all hover:bg-gray-600"
@@ -285,9 +316,74 @@
             >
               <span class="flex items-center">⬆ Asc</span>
             </button>
+            <button
+              id="logoutBtn"
+              class="text-white font-medium hover:text-red-500 cursor-pointer transition px-3 py-2"
+            >
+              Logout
+            </button>
           </div>
         </div>
 
+        <!-- Collaborative List Controls (Hidden by default) -->
+        <div
+          id="collabListControls"
+          class="hidden mb-6 bg-gray-800/50 p-4 rounded-xl border border-gray-700"
+        >
+          <div class="flex items-center gap-3 flex-wrap">
+            <select
+              id="collabListDropdown"
+              class="flex-1 min-w-[200px] p-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+            >
+              <option value="">Select a collaborative list...</option>
+            </select>
+            <button
+              id="createCollabListBtn"
+              class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium transition-all shadow-md hover:scale-105"
+            >
+              + New List
+            </button>
+            <button
+              id="manageCollabListBtn"
+              class="px-4 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-all shadow-md"
+            >
+              👥 Manage Members
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State Placeholder for Collaborative Lists -->
+        <div id="collabEmptyState" class="hidden text-center py-20 px-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-20 h-20 mx-auto text-gray-600 mb-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+            />
+          </svg>
+          <h2 class="text-2xl font-bold text-white mb-2">
+            Select a Collaborative List
+          </h2>
+          <p class="text-gray-400 mb-6">
+            Choose a list from the dropdown above to view and manage shared
+            tasks with your team
+          </p>
+          <button
+            onclick="document.getElementById('createCollabListBtn').click()"
+            class="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold transition-all shadow-lg hover:scale-105"
+          >
+            Create A Collaborative List
+          </button>
+        </div>
+
+        <!-- Task Board -->
         <div class="grid grid-cols-3 gap-6" id="toDoBoard"></div>
 
         <div id="noResults" class="hidden text-center py-12">
@@ -321,9 +417,7 @@
           />
         </div>
         <div class="w-full mb-3">
-          <label
-            for="taskDescription"
-            class="block text-gray-400 text-sm mb-1"
+          <label for="taskDescription" class="block text-gray-400 text-sm mb-1"
             >Task Description</label
           >
           <textarea
@@ -427,6 +521,162 @@
       </div>
     </div>
 
+    <!-- COLLABORATIVE LIST MODAL -->
+    <div
+      id="collabListModal"
+      class="modal fixed inset-0 bg-black/60 items-center justify-center z-50"
+    >
+      <div class="modal-content bg-gray-800 p-6 rounded-xl w-96 mx-4">
+        <h2 class="text-xl font-bold text-white mb-4">
+          Create Collaborative List
+        </h2>
+        <div class="w-full mb-4">
+          <label for="collabListName" class="block text-gray-400 text-sm mb-1"
+            >List Name</label
+          >
+          <input
+            id="collabListName"
+            type="text"
+            class="block w-full p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            placeholder="Enter list name"
+          />
+        </div>
+        <div class="flex justify-end gap-2">
+          <button
+            id="closeCollabListModal"
+            class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            id="saveCollabList"
+            class="px-4 py-2 bg-green-600 rounded hover:bg-green-500 transition-all"
+          >
+            Create
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBER MANAGEMENT MODAL - ENHANCED -->
+    <div
+      id="memberModal"
+      class="modal fixed inset-0 bg-black/60 items-center justify-center z-50"
+    >
+      <div
+        class="modal-content bg-gray-800 p-6 rounded-xl w-[500px] mx-4 max-h-[80vh] overflow-y-auto"
+      >
+        <h2 class="text-xl font-bold text-white mb-4">Manage Members</h2>
+
+        <!-- Current Members List -->
+        <div class="mb-6">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">
+            Current Members
+          </h3>
+          <div id="membersList" class="space-y-2 max-h-60 overflow-y-auto">
+            <!-- Members will be dynamically added here -->
+          </div>
+        </div>
+
+        <!-- Add New Member -->
+        <div class="mb-4 pt-4 border-t border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase mb-3">
+            Add New Member
+          </h3>
+          <div class="flex gap-2">
+            <input
+              id="memberUsername"
+              type="text"
+              class="flex-1 p-2 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              placeholder="Enter username"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <div class="flex gap-2">
+            <input id="memberUsername" ... />
+            <button id="addMemberBtn">Add</button>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-4">
+            <button id="closeMemberModal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL FOR ADDING MEMBER -->
+    <div
+      id="confirmAddModal"
+      class="modal fixed inset-0 bg-black/70 items-center justify-center z-[60]"
+    >
+      <div
+        class="modal-content bg-gray-800 p-6 rounded-xl w-96 mx-4 border-2 border-blue-500"
+      >
+        <h2 class="text-xl font-bold text-white mb-4">Confirm Add Member</h2>
+        <p class="text-gray-300 mb-2">
+          Are you sure you want to add
+          <span id="confirmUsername" class="text-blue-400 font-semibold"></span>
+          to this collaborative list?
+        </p>
+        <p class="text-gray-400 text-sm mb-4">
+          They will be able to view and edit all tasks in this list.
+        </p>
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancelAddMemberBtn"
+            class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmAddMemberBtn"
+            class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 transition-all"
+          >
+            Add Member
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL FOR REMOVING MEMBER -->
+    <div
+      id="confirmRemoveModal"
+      class="modal fixed inset-0 bg-black/70 items-center justify-center z-[60]"
+    >
+      <div
+        class="modal-content bg-gray-800 p-6 rounded-xl w-96 mx-4 border-2 border-red-500"
+      >
+        <h2 class="text-xl font-bold text-white mb-4">Confirm Remove Member</h2>
+        <p class="text-gray-300 mb-2">
+          Are you sure you want to remove
+          <span
+            id="confirmRemoveUsername"
+            class="text-red-400 font-semibold"
+          ></span>
+          from this collaborative list?
+        </p>
+        <p class="text-gray-400 text-sm mb-4">
+          They will lose access to all tasks in this list.
+        </p>
+        <div class="flex justify-end gap-2">
+          <button
+            id="cancelRemoveMemberBtn"
+            class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmRemoveMemberBtn"
+            class="px-4 py-2 bg-red-600 rounded hover:bg-red-500 transition-all"
+          >
+            Remove Member
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
@@ -452,7 +702,6 @@
     </button>
 
     <script>
-      // Fallback: if axios.js didn't define apiClient, define a basic one
       if (typeof window.apiClient === "undefined") {
         const token = localStorage.getItem("token");
         window.apiClient = axios.create({
@@ -464,8 +713,8 @@
       const config = {
         columns: ["Not Started", "In Progress", "Completed"],
         priorityOrder: { High: 1, Mid: 2, Low: 3 },
-        // axios.js has baseURL="/api/", so we just hit "tasks/"
         API_BASE: "tasks/",
+        COLLAB_API_BASE: "collaborative-lists/",
         priorities: ["High", "Mid", "Low"],
         priorityColors: {
           High: "text-red-400",
@@ -478,6 +727,11 @@
         board: document.getElementById("toDoBoard"),
         modal: document.getElementById("taskModal"),
         deleteModal: document.getElementById("deleteModal"),
+        collabListModal: document.getElementById("collabListModal"),
+        memberModal: document.getElementById("memberModal"),
+        confirmAddModal: document.getElementById("confirmAddModal"),
+        confirmRemoveModal: document.getElementById("confirmRemoveModal"),
+        collabEmptyState: document.getElementById("collabEmptyState"),
         searchInput: document.getElementById("searchInput"),
         noResults: document.getElementById("noResults"),
         backToTopBtn: document.getElementById("backToTop"),
@@ -487,6 +741,13 @@
         priorityStats: document.getElementById("priorityStats"),
         sortSelect: document.getElementById("sortSelect"),
         sortOrderBtn: document.getElementById("sortOrderBtn"),
+        collabListDropdown: document.getElementById("collabListDropdown"),
+        collabListControls: document.getElementById("collabListControls"),
+        personalViewBtn: document.getElementById("personalViewBtn"),
+        collaborativeViewBtn: document.getElementById("collaborativeViewBtn"),
+        membersList: document.getElementById("membersList"),
+        confirmUsername: document.getElementById("confirmUsername"),
+        confirmRemoveUsername: document.getElementById("confirmRemoveUsername"),
         form: {
           title: document.getElementById("taskTitle"),
           description: document.getElementById("taskDescription"),
@@ -495,12 +756,32 @@
           dueDate: document.getElementById("taskDueDate"),
           dueTime: document.getElementById("taskDueTime"),
         },
+        collab: {
+          listName: document.getElementById("collabListName"),
+          memberUsername: document.getElementById("memberUsername"),
+        },
         buttons: {
           addTask: document.getElementById("addTaskBtn"),
           closeModal: document.getElementById("closeModal"),
           saveTask: document.getElementById("saveTask"),
           cancelDelete: document.getElementById("cancelDeleteBtn"),
           confirmDelete: document.getElementById("confirmDeleteBtn"),
+          createCollabList: document.getElementById("createCollabListBtn"),
+          manageCollabList: document.getElementById("manageCollabListBtn"),
+          closeCollabListModal: document.getElementById("closeCollabListModal"),
+          saveCollabList: document.getElementById("saveCollabList"),
+          closeMemberModal: document.getElementById("closeMemberModal"),
+          addMemberBtn: document.getElementById("addMemberBtn"),
+          confirmAddMemberBtn: document.getElementById("confirmAddMemberBtn"),
+          cancelAddMemberBtn: document.getElementById("cancelAddMemberBtn"),
+          confirmRemoveMemberBtn: document.getElementById(
+            "confirmRemoveMemberBtn"
+          ),
+          cancelRemoveMemberBtn: document.getElementById(
+            "cancelRemoveMemberBtn"
+          ),
+          profileBtn: document.getElementById("profileBtn"),
+          logoutBtn: document.getElementById("logoutBtn"),
         },
         text: {
           modalTitle: document.getElementById("modalTitle"),
@@ -509,6 +790,11 @@
 
       const state = {
         tasks: [],
+        currentUser: null,
+        collaborativeLists: [],
+        currentListMembers: [],
+        pendingMemberUsername: "",
+        pendingRemoveMemberUsername: "",
         editId: null,
         taskToDelete: null,
         deletedTask: null,
@@ -517,6 +803,8 @@
         sortOrder: "asc",
         searchTimeout: null,
         toastTimeout: null,
+        currentView: "personal",
+        selectedCollabListId: null,
       };
 
       const utils = {
@@ -567,10 +855,13 @@
             DOM.toast.textContent = msg;
           }
 
-          state.toastTimeout = setTimeout(() => {
-            DOM.toast.classList.remove("show");
-            if (showUndo) state.deletedTask = null;
-          }, showUndo ? 5000 : 3000);
+          state.toastTimeout = setTimeout(
+            () => {
+              DOM.toast.classList.remove("show");
+              if (showUndo) state.deletedTask = null;
+            },
+            showUndo ? 5000 : 3000
+          );
         },
 
         matchesSearch: (task, term) => {
@@ -624,40 +915,68 @@
       const components = {
         createTaskCard: (task) => {
           const card = document.createElement("div");
-          card.className = `task-card priority-${task.priority.toLowerCase()} p-3 bg-gray-700 rounded-lg shadow hover:scale-105 transition-all duration-200 fade-in`;
+
+          const isCollaborative = state.currentView === "collaborative";
+          const creatorInfo =
+            isCollaborative && task.created_by_username
+              ? `<p class="text-xs text-gray-400 mb-2">Created by: <span class="text-blue-400">${task.created_by_username}</span></p>`
+              : "";
+
+          // Check if current user owns this task
+          const isOwner = task.created_by_username === state.currentUser;
+
+          // Show edit/delete buttons only if user is the owner
+          const actionButtons = isOwner
+            ? `<button onclick="handlers.editTask(${task.id})" 
+              class="p-1 text-yellow-300 hover:text-yellow-200" 
+              title="Edit">✎</button>
+       <button onclick="handlers.showDeleteModal(${task.id})" 
+              class="p-1 text-red-400 hover:text-red-300" 
+              title="Delete">🗑</button>`
+            : `<span class="text-xs text-gray-500 italic px-2">Read-only</span>`;
+
+          // Show status dropdown only if user is the owner, otherwise just display status
+          const statusControl = isOwner
+            ? `<select class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500"
+              onchange="api.markAsDone(${task.id}, this.value)">
+        ${config.columns
+          .map(
+            (s) =>
+              `<option ${task.status === s ? "selected" : ""}>${s}</option>`
+          )
+          .join("")}
+       </select>`
+            : `<span class="bg-gray-700 px-3 py-1 rounded text-sm text-gray-400 cursor-not-allowed">
+         ${task.status}
+       </span>`;
+
+          // Add subtle visual indicator for readonly tasks
+          const readonlyIndicator =
+            !isOwner && isCollaborative
+              ? "border-l-4 border-gray-600 opacity-90"
+              : "";
+
+          card.className = `task-card priority-${task.priority.toLowerCase()} p-3 bg-gray-700 rounded-lg shadow hover:scale-105 transition-all duration-200 fade-in ${readonlyIndicator}`;
           card.dataset.id = task.id;
+
           card.innerHTML = `
-            <h3 class="font-semibold text-white">${task.title}</h3>
-            <p class="text-gray-300 text-xs mb-2">
-              Date added: ${utils.formatDueDate(task.created_at)}
-            </p>
-            <p class="text-gray-300 text-sm">${task.description || ""}</p>
-            <p class="text-sm text-gray-400">
-              <span class="${utils.getPriorityColor(task.priority)}">
-                ${task.priority}
-              </span>
-              • Due: ${utils.formatDueDate(task.due_datetime)}
-            </p>
-            <div class="flex gap-2 mt-2 items-center">
-              <select class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500"
-                      onchange="api.markAsDone(${task.id}, this.value)">
-                ${config.columns
-                  .map(
-                    (s) =>
-                      `<option ${
-                        task.status === s ? "selected" : ""
-                      }>${s}</option>`
-                  )
-                  .join("")}
-              </select>
-              <button onclick="handlers.editTask(${
-                task.id
-              })" class="p-1 text-yellow-300 hover:text-yellow-200" title="Edit">✎</button>
-              <button onclick="handlers.showDeleteModal(${
-                task.id
-              })" class="p-1 text-red-400 hover:text-red-300" title="Delete">🗑</button>
-            </div>
-          `;
+    <h3 class="font-semibold text-white">${task.title}</h3>
+    ${creatorInfo}
+    <p class="text-gray-300 text-xs mb-2">
+      Date added: ${utils.formatDueDate(task.created_at)}
+    </p>
+    <p class="text-gray-300 text-sm">${task.description || ""}</p>
+    <p class="text-sm text-gray-400">
+      <span class="${utils.getPriorityColor(task.priority)}">
+        ${task.priority}
+      </span>
+      • Due: ${utils.formatDueDate(task.due_datetime)}
+    </p>
+    <div class="flex gap-2 mt-2 items-center">
+      ${statusControl}
+      ${actionButtons}
+    </div>
+  `;
           return card;
         },
 
@@ -677,6 +996,21 @@
 
         renderBoard: () => {
           DOM.board.innerHTML = "";
+
+          // Show empty state if in collaborative view and no list selected
+          if (
+            state.currentView === "collaborative" &&
+            !state.selectedCollabListId
+          ) {
+            DOM.board.classList.add("hidden");
+            DOM.noResults.classList.add("hidden");
+            DOM.collabEmptyState.classList.remove("hidden");
+            components.updateStats([]);
+            return;
+          }
+
+          DOM.collabEmptyState.classList.add("hidden");
+
           const filtered = helpers.filterTasks(state.tasks);
           const sortBy = DOM.sortSelect.value;
           const sorted = helpers.sortTasks(filtered, sortBy, state.sortOrder);
@@ -745,16 +1079,112 @@
             );
           });
         },
+
+        updateViewButtons: () => {
+          if (state.currentView === "personal") {
+            DOM.personalViewBtn.classList.add("active");
+            DOM.collaborativeViewBtn.classList.remove("active");
+            DOM.collabListControls.classList.add("hidden");
+            DOM.collabEmptyState.classList.add("hidden");
+          } else {
+            DOM.collaborativeViewBtn.classList.add("active");
+            DOM.personalViewBtn.classList.remove("active");
+            DOM.collabListControls.classList.remove("hidden");
+          }
+        },
+
+        renderMembersList: () => {
+          DOM.membersList.innerHTML = "";
+
+          if (state.currentListMembers.length === 0) {
+            DOM.membersList.innerHTML = `
+              <div class="text-center py-4 text-gray-400">
+                <p class="text-sm">No members yet</p>
+                <p class="text-xs mt-1">Add members using the form below</p>
+              </div>
+            `;
+            return;
+          }
+
+          state.currentListMembers.forEach((member) => {
+            const memberDiv = document.createElement("div");
+            memberDiv.className =
+              "member-item flex items-center justify-between p-3 bg-gray-700 rounded-lg";
+            memberDiv.innerHTML = `
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                  ${member.charAt(0).toUpperCase()}
+                </div>
+                <span class="text-white font-medium">${member}</span>
+              </div>
+          
+            `;
+            DOM.membersList.appendChild(memberDiv);
+          });
+        },
       };
 
       const api = {
+        fetchCurrentUser: async () => {
+          try {
+            const res = await apiClient.get("users/me/");
+            state.currentUser = res.data.username;
+          } catch (e) {
+            console.error("Error fetching user:", e);
+          }
+        },
         fetchTasks: async () => {
           try {
-            const res = await apiClient.get(config.API_BASE);
+            const viewParam =
+              state.currentView === "personal" ? "personal" : "collaborative";
+
+            let url = `${config.API_BASE}?view=${viewParam}`;
+
+            // Add list_id if a list is selected
+            if (
+              state.currentView === "collaborative" &&
+              state.selectedCollabListId
+            ) {
+              url += `&list_id=${state.selectedCollabListId}`;
+            }
+
+            const res = await apiClient.get(url);
             state.tasks = res.data;
             components.renderBoard();
           } catch (e) {
             helpers.showToast("Error fetching tasks", true);
+            console.error(e);
+          }
+        },
+
+        fetchCollaborativeLists: async () => {
+          try {
+            const res = await apiClient.get(config.COLLAB_API_BASE);
+            state.collaborativeLists = res.data;
+
+            DOM.collabListDropdown.innerHTML =
+              '<option value="">Select a collaborative list...</option>';
+            res.data.forEach((list) => {
+              const option = document.createElement("option");
+              option.value = list.id;
+              option.textContent = list.name;
+              DOM.collabListDropdown.appendChild(option);
+            });
+          } catch (e) {
+            helpers.showToast("Error loading collaborative lists", true);
+            console.error(e);
+          }
+        },
+
+        fetchListMembers: async (listId) => {
+          try {
+            const res = await apiClient.get(
+              `${config.COLLAB_API_BASE}${listId}/`
+            );
+            state.currentListMembers = res.data.member_usernames || [];
+            components.renderMembersList();
+          } catch (e) {
+            helpers.showToast("Error loading members", true);
             console.error(e);
           }
         },
@@ -776,13 +1206,22 @@
             return null;
           }
 
-          return {
+          const payload = {
             title,
             description,
             status,
             priority,
             due_datetime: `${dueDate}T${dueTime}:00`,
           };
+
+          if (
+            state.currentView === "collaborative" &&
+            state.selectedCollabListId
+          ) {
+            payload.collaborative_list_id = state.selectedCollabListId;
+          }
+
+          return payload;
         },
 
         addTask: async () => {
@@ -826,10 +1265,9 @@
 
         markAsDone: async (id, status) => {
           try {
-            const res = await apiClient.patch(
-              `${config.API_BASE}${id}/`,
-              { status }
-            );
+            const res = await apiClient.patch(`${config.API_BASE}${id}/`, {
+              status,
+            });
             const idx = state.tasks.findIndex((t) => t.id === id);
             if (idx !== -1) state.tasks[idx] = res.data;
             components.renderBoard();
@@ -837,10 +1275,10 @@
             const statusMessages = {
               "Not Started": [
                 "Back to the start—fresh reset!",
-                "Not started yet. You’ve got this.",
+                "Not started yet. You've got this.",
               ],
               "In Progress": [
-                "Nice, it’s moving!",
+                "Nice, it's moving!",
                 "Progress looks good—keep going!",
               ],
               Completed: [
@@ -850,8 +1288,7 @@
               default: ["Status updated."],
             };
 
-            const msgs =
-              statusMessages[status] || statusMessages["default"];
+            const msgs = statusMessages[status] || statusMessages["default"];
             const msg = msgs[Math.floor(Math.random() * msgs.length)];
             helpers.showToast(`Task is now ${status}. ${msg}`);
           } catch (e) {
@@ -868,20 +1305,15 @@
             );
             state.deletedTask = { ...taskToDelete };
 
-            await apiClient.delete(
-              `${config.API_BASE}${state.taskToDelete}/`
-            );
+            await apiClient.delete(`${config.API_BASE}${state.taskToDelete}/`);
             state.tasks = state.tasks.filter(
               (t) => t.id !== state.taskToDelete
             );
             state.taskToDelete = null;
             DOM.deleteModal.classList.remove("active");
 
-            helpers.showToast(
-              "Task deleted",
-              false,
-              true,
-              () => api.restoreTask(state.deletedTask)
+            helpers.showToast("Task deleted", false, true, () =>
+              api.restoreTask(state.deletedTask)
             );
 
             components.renderBoard();
@@ -898,9 +1330,7 @@
               `${config.API_BASE}${taskData.id}/restore/`
             );
             if (res.status === 200 && res.data) {
-              const idx = state.tasks.findIndex(
-                (t) => t.id === taskData.id
-              );
+              const idx = state.tasks.findIndex((t) => t.id === taskData.id);
               if (idx !== -1) {
                 state.tasks[idx] = res.data;
               } else {
@@ -919,9 +1349,87 @@
             console.error(e);
           }
         },
+
+        createCollaborativeList: async () => {
+          const name = DOM.collab.listName.value.trim();
+          if (!name) {
+            helpers.showToast("Enter list name", true);
+            return;
+          }
+
+          try {
+            const res = await apiClient.post(config.COLLAB_API_BASE, { name });
+            if (res.status === 201) {
+              helpers.showToast("Collaborative list created!");
+              DOM.collabListModal.classList.remove("active");
+              DOM.collab.listName.value = "";
+              await api.fetchCollaborativeLists();
+            }
+          } catch (e) {
+            helpers.showToast("Error creating list", true);
+            console.error(e);
+          }
+        },
+
+        addMemberToList: async () => {
+          const listId = DOM.collabListDropdown.value;
+          if (!listId) {
+            helpers.showToast("Please select a list first", true);
+            return;
+          }
+
+          const username = state.pendingMemberUsername;
+
+          try {
+            await apiClient.post(
+              `${config.COLLAB_API_BASE}${listId}/add_member/`,
+              { username }
+            );
+            helpers.showToast(`Added ${username} to list!`);
+            DOM.confirmAddModal.classList.remove("active");
+            DOM.collab.memberUsername.value = "";
+            state.pendingMemberUsername = "";
+            await api.fetchListMembers(listId);
+          } catch (e) {
+            console.error("Error:", e);
+            const errorMsg =
+              e.response?.data?.error ||
+              e.response?.data?.detail ||
+              "User-friendly fallback message";
+            helpers.showToast(errorMsg, true);
+          }
+        },
+
+        removeMemberFromList: async () => {
+          const listId = DOM.collabListDropdown.value;
+          const username = state.pendingRemoveMemberUsername;
+
+          try {
+            await apiClient.post(
+              `${config.COLLAB_API_BASE}${listId}/remove_member/`,
+              { username }
+            );
+            helpers.showToast(`Removed ${username} from list`);
+            DOM.confirmRemoveModal.classList.remove("active");
+            state.pendingRemoveMemberUsername = "";
+            await api.fetchListMembers(listId);
+          } catch (e) {
+            helpers.showToast("Error removing member", true);
+            console.error(e);
+            DOM.confirmRemoveModal.classList.remove("active");
+          }
+        },
+
+        logout: async () => {
+          try {
+            await apiClient.post("users/logout/");
+          } catch (_) {}
+          localStorage.removeItem("token");
+          helpers.showToast("Logged out");
+          setTimeout(() => (window.location.href = "/"), 1000);
+        },
       };
 
-      // expose for inline handlers
       window.api = api;
 
       const modal = {
@@ -975,17 +1483,10 @@
         titleInput: (e) => {
           const remaining = 100 - e.target.value.length;
           e.target.style.borderColor =
-            remaining < 20
-              ? remaining < 0
-                ? "#dc2626"
-                : "#f59e0b"
-              : "";
+            remaining < 20 ? (remaining < 0 ? "#dc2626" : "#f59e0b") : "";
         },
         scroll: () => {
-          DOM.backToTopBtn.classList.toggle(
-            "show",
-            window.scrollY > 100
-          );
+          DOM.backToTopBtn.classList.toggle("show", window.scrollY > 100);
         },
         backToTop: () => {
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1012,17 +1513,76 @@
           state.taskToDelete = id;
           DOM.deleteModal.classList.add("active");
         },
+        switchToPersonal: () => {
+          state.currentView = "personal";
+          state.selectedCollabListId = null;
+          components.updateViewButtons();
+          api.fetchTasks();
+        },
+        switchToCollaborative: () => {
+          state.currentView = "collaborative";
+          components.updateViewButtons();
+          api.fetchCollaborativeLists();
+          components.renderBoard();
+        },
+        collabListChange: (e) => {
+          state.selectedCollabListId = e.target.value || null;
+          if (state.selectedCollabListId) {
+            api.fetchTasks();
+          } else {
+            // Show empty state
+            components.renderBoard();
+          }
+        },
+        openCollabListModal: () => {
+          DOM.collabListModal.classList.add("active");
+        },
+        closeCollabListModal: () => {
+          DOM.collabListModal.classList.remove("active");
+          DOM.collab.listName.value = "";
+        },
+        openMemberModal: async () => {
+          const listId = DOM.collabListDropdown.value;
+          if (!listId) {
+            helpers.showToast("Please select a list first", true);
+            return;
+          }
+          await api.fetchListMembers(listId);
+          DOM.memberModal.classList.add("active");
+        },
+        closeMemberModal: () => {
+          DOM.memberModal.classList.remove("active");
+          DOM.collab.memberUsername.value = "";
+          state.currentListMembers = [];
+        },
+        showAddMemberConfirm: () => {
+          const username = DOM.collab.memberUsername.value.trim();
+          if (!username) {
+            helpers.showToast("Enter username", true);
+            return;
+          }
+
+          state.pendingMemberUsername = username;
+          DOM.confirmUsername.textContent = username;
+          DOM.confirmAddModal.classList.add("active");
+        },
+        closeAddMemberConfirm: () => {
+          DOM.confirmAddModal.classList.remove("active");
+          state.pendingMemberUsername = "";
+        },
+        confirmAddMember: () => {
+          api.addMemberToList();
+        },
+        profileRedirect: () => {
+          window.location.href = "/profile";
+        },
       };
 
-      // expose for inline handlers
       window.handlers = handlers;
 
       const initializeEventListeners = () => {
         DOM.buttons.addTask.addEventListener("click", handlers.addTask);
-        DOM.buttons.closeModal.addEventListener(
-          "click",
-          handlers.closeModal
-        );
+        DOM.buttons.closeModal.addEventListener("click", handlers.closeModal);
         DOM.buttons.saveTask.addEventListener("click", handlers.saveTask);
         DOM.buttons.cancelDelete.addEventListener(
           "click",
@@ -1033,27 +1593,69 @@
           handlers.confirmDelete
         );
         DOM.sortSelect.addEventListener("change", handlers.sortChange);
-        DOM.sortOrderBtn.addEventListener(
-          "click",
-          handlers.sortOrderToggle
-        );
-        DOM.searchInput.addEventListener(
-          "input",
-          handlers.searchInput
-        );
-        DOM.form.title.addEventListener(
-          "input",
-          handlers.titleInput
-        );
-        DOM.backToTopBtn.addEventListener(
-          "click",
-          handlers.backToTop
-        );
+        DOM.sortOrderBtn.addEventListener("click", handlers.sortOrderToggle);
+        DOM.searchInput.addEventListener("input", handlers.searchInput);
+        DOM.form.title.addEventListener("input", handlers.titleInput);
+        DOM.backToTopBtn.addEventListener("click", handlers.backToTop);
         window.addEventListener("scroll", handlers.scroll);
+
+        DOM.personalViewBtn.addEventListener(
+          "click",
+          handlers.switchToPersonal
+        );
+        DOM.collaborativeViewBtn.addEventListener(
+          "click",
+          handlers.switchToCollaborative
+        );
+        DOM.collabListDropdown.addEventListener(
+          "change",
+          handlers.collabListChange
+        );
+
+        DOM.buttons.createCollabList.addEventListener(
+          "click",
+          handlers.openCollabListModal
+        );
+        DOM.buttons.closeCollabListModal.addEventListener(
+          "click",
+          handlers.closeCollabListModal
+        );
+        DOM.buttons.saveCollabList.addEventListener(
+          "click",
+          api.createCollaborativeList
+        );
+        DOM.buttons.manageCollabList.addEventListener(
+          "click",
+          handlers.openMemberModal
+        );
+        DOM.buttons.closeMemberModal.addEventListener(
+          "click",
+          handlers.closeMemberModal
+        );
+
+        // Member management
+        DOM.buttons.addMemberBtn.addEventListener(
+          "click",
+          handlers.showAddMemberConfirm
+        );
+        DOM.buttons.confirmAddMemberBtn.addEventListener(
+          "click",
+          handlers.confirmAddMember
+        );
+        DOM.buttons.cancelAddMemberBtn.addEventListener(
+          "click",
+          handlers.closeAddMemberConfirm
+        );
+        DOM.buttons.profileBtn.addEventListener(
+          "click",
+          handlers.profileRedirect
+        );
+        DOM.buttons.logoutBtn.addEventListener("click", api.logout);
       };
 
       initializeEventListeners();
       api.fetchTasks();
+      api.fetchCurrentUser();
     </script>
   </body>
 </html>
