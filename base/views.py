@@ -62,9 +62,9 @@ class CollaborativeListViewSet(viewsets.ModelViewSet):
 
 
 # ---------------- Home ----------------
-def home(request):
+def tasks(request):
     tasks = Task.objects.all()
-    return render(request, "base/home.html", {"tasks": tasks})
+    return render(request, "base/tasks.html", {"tasks": tasks})
 
 def auth(request):
     return render(request, "base/auth.html")

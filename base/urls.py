@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    CollaborativeListViewSet, home, auth, TaskViewSet,
+    CollaborativeListViewSet, tasks, auth, TaskViewSet,
     profile, signup, login, test_token,
     get_security_question, reset_password, update_security_question,
     update_user_info, logout, verify_security_answer , me, change_password
@@ -30,7 +30,7 @@ user_patterns = [
 urlpatterns = [
     # Home
     path('', auth, name='auth'),
-    path('home/', home, name='home'),
+    path('tasks/', tasks, name='tasks'),
     path('profile/', profile, name='profile'),
 
     path('api/', include([
