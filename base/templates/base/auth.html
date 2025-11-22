@@ -92,7 +92,7 @@
             Forgot Password?
           </button>
           <p class="text-gray-400 text-sm">
-            Don’t have an account?
+            Don't have an account?
             <button
               type="button"
               onclick="toggleForms('register')"
@@ -150,7 +150,7 @@
         </p>
       </form>
 
-      <!-- FORGOT PASSWORD FORM (3-step) -->
+      <!-- FORGOT PASSWORD FORM -->
       <form
         id="forgotPasswordForm"
         onsubmit="handleForgotPassword(event)"
@@ -160,7 +160,7 @@
           Reset Password 🔑
         </h2>
 
-        <!-- STEP 1: Username -->
+        <!-- Username -->
         <div id="fpStep1" class="space-y-4">
           <input
             id="fpUsername"
@@ -172,13 +172,20 @@
           <button
             type="button"
             onclick="getSecurityQuestion()"
-            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
           >
             Next
           </button>
+          <button
+            type="button"
+            onclick="cancelForgotPassword()"
+            class="w-full py-3 rounded-xl font-bold text-white bg-gray-600 hover:bg-gray-700 shadow-lg transition-colors duration-200"
+          >
+            Back to Login
+          </button>
         </div>
 
-        <!-- STEP 2: Security Question -->
+        <!-- Security Question -->
         <div id="fpStep2" class="space-y-4 hidden">
           <input
             id="fpSecurityQuestion"
@@ -197,13 +204,20 @@
           <button
             type="button"
             onclick="verifySecurityAnswer()"
-            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
           >
             Next
           </button>
+          <button
+            type="button"
+            onclick="goBackToStep(1)"
+            class="w-full py-3 rounded-xl font-bold text-white bg-gray-600 hover:bg-gray-700 shadow-lg transition-colors duration-200"
+          >
+            Back
+          </button>
         </div>
 
-        <!-- STEP 3: New Password -->
+        <!-- New Password -->
         <div id="fpStep3" class="space-y-4 hidden">
           <input
             id="fpNewPassword"
@@ -214,9 +228,16 @@
           />
           <button
             type="submit"
-            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+            class="w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
           >
             Reset Password
+          </button>
+          <button
+            type="button"
+            onclick="goBackToStep(2)"
+            class="w-full py-3 rounded-xl font-bold text-white bg-gray-600 hover:bg-gray-700 shadow-lg transition-colors duration-200"
+          >
+            Back
           </button>
         </div>
       </form>
@@ -238,6 +259,7 @@
         setTimeout(() => toast.classList.add("hidden"), 3000);
       }
 
+      // toggles between login, register, and forgot password forms
       function toggleForms(form) {
         const forms = ["loginForm", "registerForm", "forgotPasswordForm"];
         forms.forEach((id) =>
@@ -247,13 +269,52 @@
         );
       }
 
-      // LOGIN
+      // navigates back to a specific step in the forgot password flow
+      function goBackToStep(stepNumber) {
+        // Hide all steps
+        document.getElementById("fpStep1").classList.add("hidden");
+        document.getElementById("fpStep2").classList.add("hidden");
+        document.getElementById("fpStep3").classList.add("hidden");
+
+        // Show target step
+        document.getElementById(`fpStep${stepNumber}`).classList.remove("hidden");
+
+        // Clear subsequent step data
+        if (stepNumber === 1) {
+          document.getElementById("fpSecurityQuestion").value = "";
+          document.getElementById("fpSecurityAnswer").value = "";
+          document.getElementById("fpNewPassword").value = "";
+        } else if (stepNumber === 2) {
+          document.getElementById("fpNewPassword").value = "";
+        }
+      }
+
+      function cancelForgotPassword() {
+        resetForgotPasswordForm();
+        toggleForms("login");
+      }
+
+      // resets the forgot password form to its initial state
+      function resetForgotPasswordForm() {
+        document.getElementById("fpStep1").classList.remove("hidden");
+        document.getElementById("fpStep2").classList.add("hidden");
+        document.getElementById("fpStep3").classList.add("hidden");
+
+        document.getElementById("fpUsername").value = "";
+        document.getElementById("fpSecurityQuestion").value = "";
+        document.getElementById("fpSecurityAnswer").value = "";
+        document.getElementById("fpNewPassword").value = "";
+      }
+
+      // logins and registration
       async function handleLogin(event) {
         event.preventDefault();
         const username = document.getElementById("loginUsername").value.trim();
         const password = document.getElementById("loginPassword").value.trim();
-        if (!username || !password)
+        
+        if (!username || !password) {
           return showToast("Please enter all fields", true);
+        }
 
         try {
           const { data } = await apiClient.post("/users/login/", {
@@ -268,19 +329,17 @@
         }
       }
 
+      // register new user
       async function handleRegister(event) {
         event.preventDefault();
 
-        const username = document
-          .getElementById("registerUsername")
-          .value.trim();
+        const username = document.getElementById("registerUsername").value.trim();
         const email = document.getElementById("registerEmail").value.trim();
-        const password = document
-          .getElementById("registerPassword")
-          .value.trim();
+        const password = document.getElementById("registerPassword").value.trim();
 
-        if (!username || !email || !password)
+        if (!username || !email || !password) {
           return showToast("All fields required", true);
+        }
 
         try {
           const { data } = await apiClient.post("/users/signup/", {
@@ -311,65 +370,64 @@
         }
       }
 
-      // STEP 1: Get Security Question
+      // forgot password flow
       async function getSecurityQuestion() {
         const username = document.getElementById("fpUsername").value.trim();
-        if (!username) return showToast("Username is required", true);
+        
+        if (!username) {
+          return showToast("Username is required", true);
+        }
 
         try {
           const { data } = await apiClient.post(
             "/users/get-security-question/",
             { username }
           );
+          
+          document.getElementById("fpSecurityQuestion").value = data.security_question;
           document.getElementById("fpStep1").classList.add("hidden");
           document.getElementById("fpStep2").classList.remove("hidden");
-          document.getElementById("fpSecurityQuestion").value =
-            data.security_question;
         } catch (err) {
           showToast(err.response?.data?.error || "User not found", true);
         }
       }
 
-      // STEP 2: Verify Security Answer
+      // verify security question answer
       async function verifySecurityAnswer() {
         const username = document.getElementById("fpUsername").value.trim();
         const answer = document.getElementById("fpSecurityAnswer").value.trim();
-        if (!answer)
-          return showToast("Please answer the security question.", true);
+        
+        if (!answer) {
+          return showToast("Please answer the security question", true);
+        }
 
         try {
           await apiClient.post("/users/verify-security-answer/", {
             username,
             security_answer: answer,
           });
-          // Correct → go to Step 3
+          
           document.getElementById("fpStep2").classList.add("hidden");
           document.getElementById("fpStep3").classList.remove("hidden");
         } catch (err) {
           showToast("Incorrect answer. Returning to login.", true);
-
-          document.getElementById("fpStep1").classList.remove("hidden");
-          document.getElementById("fpStep2").classList.add("hidden");
-          document.getElementById("fpStep3").classList.add("hidden");
-          document.getElementById("fpUsername").value = "";
-          document.getElementById("fpSecurityAnswer").value = "";
-          document.getElementById("fpNewPassword").value = "";
-          document.getElementById("fpSecurityQuestion").value = "";
-
+          
+          resetForgotPasswordForm();
           toggleForms("login");
         }
       }
+
+      // reset password
       async function handleForgotPassword(event) {
         event.preventDefault();
+        
         const username = document.getElementById("fpUsername").value.trim();
-        const securityAnswer = document
-          .getElementById("fpSecurityAnswer")
-          .value.trim();
-        const newPassword = document
-          .getElementById("fpNewPassword")
-          .value.trim();
-        if (!securityAnswer || !newPassword)
+        const securityAnswer = document.getElementById("fpSecurityAnswer").value.trim();
+        const newPassword = document.getElementById("fpNewPassword").value.trim();
+        
+        if (!securityAnswer || !newPassword) {
           return showToast("All fields are required", true);
+        }
 
         try {
           await apiClient.post("/users/reset-password/", {
@@ -377,17 +435,11 @@
             security_answer: securityAnswer,
             new_password: newPassword,
           });
+          
           showToast("Password reset successfully!");
+          
+          resetForgotPasswordForm();
           toggleForms("login");
-
-          // Reset stepper
-          document.getElementById("fpStep1").classList.remove("hidden");
-          document.getElementById("fpStep2").classList.add("hidden");
-          document.getElementById("fpStep3").classList.add("hidden");
-          document.getElementById("fpUsername").value = "";
-          document.getElementById("fpSecurityAnswer").value = "";
-          document.getElementById("fpNewPassword").value = "";
-          document.getElementById("fpSecurityQuestion").value = "";
         } catch (err) {
           showToast(
             err.response?.data?.error || "Failed to reset password",
@@ -400,6 +452,7 @@
         toggleForms("forgotPassword");
       }
 
+      // redirect if already logged in
       (function redirectIfLoggedIn() {
         const token = localStorage.getItem("token");
         if (token) {

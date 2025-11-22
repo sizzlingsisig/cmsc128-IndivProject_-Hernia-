@@ -4,12 +4,19 @@ from rest_framework.validators import UniqueValidator
 from .models import Task, Profile, CollaborativeList
 
 class TaskSerializer(serializers.ModelSerializer):
-    created_by_username = serializers.CharField(source='created_by.user.username', read_only=True)
+    created_by_username = serializers.CharField(
+        source='created_by.user.username', 
+        read_only=True
+    )
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'due_datetime', 'priority', 'status', 'created_at', 'updated_at', 'created_by_username']
-        read_only_fields = ('id', 'created_at', 'updated_at', 'created_by_username')
+        fields = [
+            'id', 'title', 'description', 'due_datetime', 'priority', 
+            'status', 'created_at', 'updated_at', 
+            'profile', 'collaborative_list', 'created_by', 'created_by_username'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by_username']
 
 
 class CollaborativeListSerializer(serializers.ModelSerializer):

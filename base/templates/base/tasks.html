@@ -520,6 +520,39 @@
         </div>
       </div>
     </div>
+    <!-- SECURITY QUESTION SETUP MODAL -->
+    <div
+      id="securityQuestionModal"
+      class="modal fixed inset-0 bg-black/60 items-center justify-center z-50"
+    >
+      <div
+        class="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl w-full max-w-md text-gray-300 fade-in"
+      >
+        <h2 class="text-xl font-bold mb-4">Set Security Question</h2>
+        <input
+          type="text"
+          id="securityQuestionInput"
+          placeholder="Security Question"
+          class="w-full p-3 mb-3 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+          maxlength="200"
+        />
+        <input
+          type="text"
+          id="securityAnswerInput"
+          placeholder="Answer"
+          class="w-full p-3 mb-4 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+          maxlength="200"
+        />
+        <div class="flex justify-end gap-2">
+          <button
+            id="submitSecurityQuestion"
+            class="px-4 py-2 rounded-xl text-white bg-green-500 hover:bg-green-600 shadow-md transition-colors duration-200"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- COLLABORATIVE LIST MODAL -->
     <div
@@ -748,6 +781,8 @@
         membersList: document.getElementById("membersList"),
         confirmUsername: document.getElementById("confirmUsername"),
         confirmRemoveUsername: document.getElementById("confirmRemoveUsername"),
+        securityQuestionModal: document.getElementById("securityQuestionModal"),
+
         form: {
           title: document.getElementById("taskTitle"),
           description: document.getElementById("taskDescription"),
@@ -755,6 +790,8 @@
           priority: document.getElementById("taskPriority"),
           dueDate: document.getElementById("taskDueDate"),
           dueTime: document.getElementById("taskDueTime"),
+          securityQuestion: document.getElementById("securityQuestionInput"),
+          securityAnswer: document.getElementById("securityAnswerInput"),
         },
         collab: {
           listName: document.getElementById("collabListName"),
@@ -777,6 +814,10 @@
           confirmRemoveMemberBtn: document.getElementById(
             "confirmRemoveMemberBtn"
           ),
+          submitSecurityQuestion: document.getElementById(
+            "submitSecurityQuestion"
+          ),
+
           cancelRemoveMemberBtn: document.getElementById(
             "cancelRemoveMemberBtn"
           ),
@@ -803,8 +844,25 @@
         sortOrder: "asc",
         searchTimeout: null,
         toastTimeout: null,
-        currentView: "personal",
-        selectedCollabListId: null,
+        currentUserProfile: null,
+        needsSecurityQuestion: false,
+        currentView: localStorage.getItem("currentView") || "personal",
+        selectedCollabListId:
+          localStorage.getItem("selectedCollabListId") || null,
+      };
+
+      const statePersistence = {
+        saveView: (view) => {
+          localStorage.setItem("currentView", view);
+        },
+
+        saveSelectedList: (listId) => {
+          if (listId) {
+            localStorage.setItem("selectedCollabListId", listId);
+          } else {
+            localStorage.removeItem("selectedCollabListId");
+          }
+        },
       };
 
       const utils = {
@@ -844,9 +902,9 @@
 
           if (showUndo && undoCallback) {
             DOM.toast.innerHTML = `
-              <span>${msg}</span>
-              <button class="toast-undo-btn">Undo</button>
-            `;
+                    <span>${msg}</span>
+                    <button class="toast-undo-btn">Undo</button>
+                  `;
             const btn = DOM.toast.querySelector(".toast-undo-btn");
             btn.onclick = () => {
               undoCallback();
@@ -906,7 +964,7 @@
             isActive ? "active" : ""
           }`;
           li.innerHTML = `<span class="${color}">${label}</span>
-                          <span class="bg-gray-600 px-2 py-1 rounded-full text-xs">${count}</span>`;
+                                <span class="bg-gray-600 px-2 py-1 rounded-full text-xs">${count}</span>`;
           li.onclick = onClick;
           return li;
         },
@@ -923,60 +981,60 @@
               : "";
 
           // Check if current user owns this task
-          const isOwner = task.created_by_username === state.currentUser;
+          const isOwner =
+            !isCollaborative || task.created_by_username === state.currentUser;
 
           // Show edit/delete buttons only if user is the owner
           const actionButtons = isOwner
-            ? `<button onclick="handlers.editTask(${task.id})" 
-              class="p-1 text-yellow-300 hover:text-yellow-200" 
-              title="Edit">✎</button>
-       <button onclick="handlers.showDeleteModal(${task.id})" 
-              class="p-1 text-red-400 hover:text-red-300" 
-              title="Delete">🗑</button>`
+            ? `<button onclick="handlers.editTask(${task.id})"
+                    class="p-1 text-yellow-300 hover:text-yellow-200"
+                    title="Edit">✎</button>
+             <button onclick="handlers.showDeleteModal(${task.id})"
+                    class="p-1 text-red-400 hover:text-red-300"
+                    title="Delete">🗑</button>`
             : `<span class="text-xs text-gray-500 italic px-2">Read-only</span>`;
 
           // Show status dropdown only if user is the owner, otherwise just display status
           const statusControl = isOwner
             ? `<select class="bg-gray-600 text-white text-sm rounded p-1 transition-all hover:bg-gray-500"
-              onchange="api.markAsDone(${task.id}, this.value)">
-        ${config.columns
-          .map(
-            (s) =>
-              `<option ${task.status === s ? "selected" : ""}>${s}</option>`
-          )
-          .join("")}
-       </select>`
+                    onchange="api.markAsDone(${task.id}, this.value)">
+              ${config.columns
+                .map(
+                  (s) =>
+                    `<option ${
+                      task.status === s ? "selected" : ""
+                    }>${s}</option>`
+                )
+                .join("")}
+             </select>`
             : `<span class="bg-gray-700 px-3 py-1 rounded text-sm text-gray-400 cursor-not-allowed">
-         ${task.status}
-       </span>`;
-
-          // Add subtle visual indicator for readonly tasks
+               ${task.status}
+             </span>`;
           const readonlyIndicator =
             !isOwner && isCollaborative
               ? "border-l-4 border-gray-600 opacity-90"
               : "";
-
-          card.className = `task-card priority-${task.priority.toLowerCase()} p-3 bg-gray-700 rounded-lg shadow hover:scale-105 transition-all duration-200 fade-in ${readonlyIndicator}`;
+          card.className = `task-card priority-${task.priority.toLowerCase()} p-4 bg-gray-700 rounded-lg shadow hover:shadow-xl transition-all duration-200 fade-in`;
           card.dataset.id = task.id;
 
           card.innerHTML = `
-    <h3 class="font-semibold text-white">${task.title}</h3>
-    ${creatorInfo}
-    <p class="text-gray-300 text-xs mb-2">
-      Date added: ${utils.formatDueDate(task.created_at)}
-    </p>
-    <p class="text-gray-300 text-sm">${task.description || ""}</p>
-    <p class="text-sm text-gray-400">
-      <span class="${utils.getPriorityColor(task.priority)}">
-        ${task.priority}
-      </span>
-      • Due: ${utils.formatDueDate(task.due_datetime)}
-    </p>
-    <div class="flex gap-2 mt-2 items-center">
-      ${statusControl}
-      ${actionButtons}
-    </div>
-  `;
+          <h3 class="font-semibold text-white">${task.title}</h3>
+          ${creatorInfo}
+          <p class="text-gray-300 text-xs mb-2">
+            Date added: ${utils.formatDueDate(task.created_at)}
+          </p>
+          <p class="text-gray-300 text-sm">${task.description || ""}</p>
+          <p class="text-sm text-gray-400">
+            <span class="${utils.getPriorityColor(task.priority)}">
+              ${task.priority}
+            </span>
+            • Due: ${utils.formatDueDate(task.due_datetime)}
+          </p>
+          <div class="flex gap-2 mt-2 items-center">
+            ${statusControl}
+            ${actionButtons}
+          </div>
+        `;
           return card;
         },
 
@@ -1083,12 +1141,19 @@
         updateViewButtons: () => {
           if (state.currentView === "personal") {
             DOM.personalViewBtn.classList.add("active");
+            DOM.personalViewBtn.classList.remove("bg-gray-800");
             DOM.collaborativeViewBtn.classList.remove("active");
+            DOM.collaborativeViewBtn.classList.add("bg-gray-800");
+
+            // Hide collaborative list controls
             DOM.collabListControls.classList.add("hidden");
-            DOM.collabEmptyState.classList.add("hidden");
           } else {
             DOM.collaborativeViewBtn.classList.add("active");
+            DOM.collaborativeViewBtn.classList.remove("bg-gray-800");
             DOM.personalViewBtn.classList.remove("active");
+            DOM.personalViewBtn.classList.add("bg-gray-800");
+
+            // Show collaborative list controls
             DOM.collabListControls.classList.remove("hidden");
           }
         },
@@ -1098,11 +1163,11 @@
 
           if (state.currentListMembers.length === 0) {
             DOM.membersList.innerHTML = `
-              <div class="text-center py-4 text-gray-400">
-                <p class="text-sm">No members yet</p>
-                <p class="text-xs mt-1">Add members using the form below</p>
-              </div>
-            `;
+                    <div class="text-center py-4 text-gray-400">
+                      <p class="text-sm">No members yet</p>
+                      <p class="text-xs mt-1">Add members using the form below</p>
+                    </div>
+                  `;
             return;
           }
 
@@ -1111,14 +1176,14 @@
             memberDiv.className =
               "member-item flex items-center justify-between p-3 bg-gray-700 rounded-lg";
             memberDiv.innerHTML = `
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
-                  ${member.charAt(0).toUpperCase()}
-                </div>
-                <span class="text-white font-medium">${member}</span>
-              </div>
-          
-            `;
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                        ${member.charAt(0).toUpperCase()}
+                      </div>
+                      <span class="text-white font-medium">${member}</span>
+                    </div>
+
+                  `;
             DOM.membersList.appendChild(memberDiv);
           });
         },
@@ -1129,8 +1194,21 @@
           try {
             const res = await apiClient.get("users/me/");
             state.currentUser = res.data.username;
+            state.currentUserProfile = res.data;
+
+            if (res.data.profile) {
+              const hasSecurityQuestion =
+                res.data.profile.security_question &&
+                res.data.profile.security_question.trim() !== "";
+              state.needsSecurityQuestion = !hasSecurityQuestion;
+
+              if (state.needsSecurityQuestion) {
+                DOM.securityQuestionModal.classList.add("active");
+              }
+            }
           } catch (e) {
             console.error("Error fetching user:", e);
+            window.location.href = "/";
           }
         },
         fetchTasks: async () => {
@@ -1140,7 +1218,6 @@
 
             let url = `${config.API_BASE}?view=${viewParam}`;
 
-            // Add list_id if a list is selected
             if (
               state.currentView === "collaborative" &&
               state.selectedCollabListId
@@ -1170,6 +1247,11 @@
               option.textContent = list.name;
               DOM.collabListDropdown.appendChild(option);
             });
+
+            // Restore selected list if it exists
+            if (state.selectedCollabListId) {
+              DOM.collabListDropdown.value = state.selectedCollabListId;
+            }
           } catch (e) {
             helpers.showToast("Error loading collaborative lists", true);
             console.error(e);
@@ -1428,6 +1510,36 @@
           helpers.showToast("Logged out");
           setTimeout(() => (window.location.href = "/"), 1000);
         },
+        saveSecurityQuestion: async () => {
+          const question = DOM.form.securityQuestion.value.trim();
+          const answer = DOM.form.securityAnswer.value.trim();
+
+          if (!question || !answer) {
+            helpers.showToast("Please fill in both fields", true);
+            return;
+          }
+
+          if (answer.length < 3) {
+            helpers.showToast("Answer must be at least 3 characters", true);
+            return;
+          }
+
+          try {
+            await apiClient.patch("users/update-security-question/", {
+              security_question: question,
+              security_answer: answer,
+            });
+
+            helpers.showToast("Security question saved successfully!");
+            DOM.securityQuestionModal.classList.remove("active");
+            DOM.form.securityQuestion.value = "";
+            DOM.form.securityAnswer.value = "";
+            state.needsSecurityQuestion = false;
+          } catch (e) {
+            helpers.showToast("Error saving security question", true);
+            console.error(e);
+          }
+        },
       };
 
       window.api = api;
@@ -1459,6 +1571,36 @@
         saveTask: () => {
           if (state.editId) api.updateTask(state.editId);
           else api.addTask();
+        },
+        submitSecurityQuestion: () => {
+          api.saveSecurityQuestion();
+        },
+        switchToPersonal: () => {
+          state.currentView = "personal";
+          state.selectedCollabListId = null;
+          statePersistence.saveView("personal");
+          statePersistence.saveSelectedList(null);
+          components.updateViewButtons();
+          api.fetchTasks();
+        },
+
+        switchToCollaborative: () => {
+          state.currentView = "collaborative";
+          statePersistence.saveView("collaborative");
+          components.updateViewButtons();
+          api.fetchCollaborativeLists();
+          components.renderBoard();
+        },
+
+        collabListChange: (e) => {
+          state.selectedCollabListId = e.target.value || null;
+          statePersistence.saveSelectedList(state.selectedCollabListId);
+
+          if (state.selectedCollabListId) {
+            api.fetchTasks();
+          } else {
+            components.renderBoard();
+          }
         },
         cancelDelete: () => {
           state.taskToDelete = null;
@@ -1588,6 +1730,11 @@
           "click",
           handlers.cancelDelete
         );
+        DOM.buttons.submitSecurityQuestion.addEventListener(
+          "click",
+          handlers.submitSecurityQuestion
+        );
+
         DOM.buttons.confirmDelete.addEventListener(
           "click",
           handlers.confirmDelete
@@ -1652,9 +1799,26 @@
         );
         DOM.buttons.logoutBtn.addEventListener("click", api.logout);
       };
-
+      // Initialize event listeners
       initializeEventListeners();
-      api.fetchTasks();
+
+      // Restore UI and fetch data based on persisted state
+      if (state.currentView === "collaborative") {
+        components.updateViewButtons();
+
+        api.fetchCollaborativeLists().then(() => {
+          if (state.selectedCollabListId) {
+            DOM.collabListDropdown.value = state.selectedCollabListId;
+            api.fetchTasks();
+          } else {
+            components.renderBoard();
+          }
+        });
+      } else {
+        components.updateViewButtons();
+        api.fetchTasks();
+      }
+
       api.fetchCurrentUser();
     </script>
   </body>
