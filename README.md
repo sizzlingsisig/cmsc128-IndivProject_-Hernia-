@@ -51,13 +51,12 @@ Django was chosen as the backend framework for several compelling reasons:
 3. **Rapid Development**
    - Minimal boilerplate code
    - Built-in migration system
-   - Admin panel for quick data inspection
-   - Extensive documentation and community support
+   - Extensive documentation and community support. Also damo yt vids
 
 4. **Scalability**
    - Can handle both small and large applications
    - Databases are easy to migrate (e.g. sqlite to pgql)
-   - Support for async views in Django 5.x
+   - Packages used are well maintained and commonly used in fullstack development
 
 5. **Python Ecosystem**
    - Clean, readable syntax
