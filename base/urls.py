@@ -1,15 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    home, TaskViewSet,
-    signup, login, test_token,
-    get_security_question, reset_password,
-    update_user_info, set_security_question, logout
+    CollaborativeListViewSet, tasks, auth, TaskViewSet,
+    profile, signup, login, test_token,
+    get_security_question, reset_password, update_security_question,
+    update_user_info, logout, verify_security_answer , me, change_password
 )
 
 # Router for tasks
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'collaborative-lists', CollaborativeListViewSet, basename='collaborative-list')
 
 # User endpoint patterns grouped under /api/users/
 user_patterns = [
@@ -18,21 +19,22 @@ user_patterns = [
     path('test-token/', test_token, name='test-token'),
     path('get-security-question/', get_security_question, name='get-security-question'),
     path('reset-password/', reset_password, name='reset-password'),
-    path('set-security-question/', set_security_question, name='set-security-question'),
+    path('update-security-question/', update_security_question, name='update-security-question'),
     path('update-user-info/', update_user_info, name='update-user-info'),
     path('logout/', logout, name='logout'),
+    path('verify-security-answer/', verify_security_answer, name='verify-security-answer'),
+    path('change-password/', change_password, name='change-password'),
+    path('me/', me, name='me'),  
 ]
 
 urlpatterns = [
     # Home
-    path('', home, name='home'),
+    path('', auth, name='auth'),
+    path('tasks/', tasks, name='tasks'),
+    path('profile/', profile, name='profile'),
 
-    # API routes
     path('api/', include([
-        # Task routes under /api/tasks/
         path('', include(router.urls)),
-
-        # User routes under /api/users/
         path('users/', include(user_patterns)),
     ])),
 ]

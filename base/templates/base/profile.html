@@ -1,0 +1,471 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUST DO IT - Profile</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{% static 'js/axios.js' %}"></script>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .fade-in {
+        animation: fadeIn 0.3s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .profile-card {
+        background: rgba(31, 41, 55, 0.9);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+      .modal.active {
+        display: flex;
+        opacity: 1;
+      }
+      body.modal-open {
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-900 flex items-center justify-center p-6"
+  >
+    <div
+      class="profile-card w-full max-w-2xl rounded-2xl px-8 py-10 fade-in border border-gray-700 relative"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between w-full mb-6">
+        <div class="w-1/3"></div>
+
+        <div class="text-center w-1/3">
+          <h1
+            class="text-4xl font-bold text-white tracking-wide whitespace-nowrap"
+          >
+            JUST DO IT
+          </h1>
+          <p class="text-gray-400 text-sm">Your tasks. Your discipline.</p>
+        </div>
+        <div class="w-1/3 flex justify-end gap-4">
+          <button
+            id="goHomeBtn"
+            class="text-white font-medium hover:text-violet-400 cursor-pointer transition"
+          >
+            Home
+          </button>
+          <span
+            id="logoutBtn"
+            class="text-white font-medium hover:text-red-500 cursor-pointer transition"
+          >
+            Logout
+          </span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex justify-center mb-6 gap-4">
+        <button
+          id="profileTab"
+          class="px-6 py-2 rounded-t-lg font-semibold text-white bg-violet-500 shadow-md hover:scale-105 transition-transform duration-200"
+        >
+          Profile
+        </button>
+        <button
+          id="securityTab"
+          class="px-6 py-2 rounded-t-lg font-medium text-gray-300 bg-gray-800/30 shadow-md hover:scale-105 transition-transform duration-200"
+        >
+          Security
+        </button>
+      </div>
+
+      <!-- Profile Content -->
+      <div class="relative flex justify-center mb-4">
+        <img
+          id="profileImage"
+          src="https://i.pinimg.com/1200x/e5/55/cd/e555cdc006e65ddd0460c15103314184.jpg"
+          class="w-32 h-32 rounded-full border-4 border-gray-500 shadow-xl object-cover"
+        />
+      </div>
+
+      <div id="profileContent" class="space-y-6">
+        <div class="space-y-5 text-gray-300">
+          <div>
+            <label
+              class="block text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider"
+              >Username</label
+            >
+            <input
+              id="username"
+              type="text"
+              class="w-full p-3.5 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+              readonly
+            />
+          </div>
+          <div>
+            <label
+              class="block text-xs font-semibold mb-2 text-gray-400 uppercase tracking-wider"
+              >Email Address</label
+            >
+            <input
+              id="email"
+              type="email"
+              class="w-full p-3.5 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+              readonly
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-4">
+          <div id="editSection">
+            <button
+              id="editBtn"
+              class="w-full px-6 py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+            >
+              Edit Profile
+            </button>
+          </div>
+          <div class="flex gap-3 hidden" id="saveCancelBtns">
+            <button
+              id="cancelBtn"
+              class="flex-1 px-6 py-3 rounded-xl font-medium text-white bg-red-500 hover:bg-red-600 shadow-lg transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              id="saveBtn"
+              class="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-green-500 hover:bg-green-600 shadow-lg transition-colors duration-200"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Content -->
+      <div id="securityContent" class="hidden space-y-4">
+        <button
+          id="passwordBtn"
+          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between"
+        >
+          Change Password
+        </button>
+        <button
+          id="securityBtn"
+          class="w-full px-6 py-3 rounded-xl font-medium text-white bg-gray-700 hover:bg-gray-600 shadow-md transition-colors duration-200 flex items-center justify-between"
+        >
+          Security Question
+        </button>
+      </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div id="securityModal" class="modal">
+      <div
+        class="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl w-full max-w-md text-gray-300 fade-in"
+      >
+        <h2 class="text-xl font-bold mb-4">Set Security Question</h2>
+        <input
+          type="text"
+          id="secQuestion"
+          placeholder="Security Question"
+          class="w-full p-3 mb-3 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+        />
+        <input
+          type="text"
+          id="secAnswer"
+          placeholder="Answer"
+          class="w-full p-3 mb-4 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+        />
+        <div class="flex justify-end gap-2">
+          <button
+            id="closeSecModal"
+            class="px-4 py-2 rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-md transition-colors duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            id="saveSecModal"
+            class="px-4 py-2 rounded-xl text-white bg-green-500 hover:bg-green-600 shadow-md transition-colors duration-200"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal">
+      <div
+        class="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl w-full max-w-md text-gray-300 fade-in"
+      >
+        <h2 class="text-xl font-bold mb-4">Change Password</h2>
+        <input
+          type="password"
+          id="oldPassword"
+          placeholder="Old Password"
+          class="w-full p-3 mb-3 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+        />
+        <input
+          type="password"
+          id="newPassword"
+          placeholder="New Password"
+          class="w-full p-3 mb-4 rounded-lg bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+        />
+        <div class="flex justify-end gap-2">
+          <button
+            id="closePassModal"
+            class="px-4 py-2 rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-md transition-colors duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            id="savePassModal"
+            class="px-4 py-2 rounded-xl text-white bg-green-500 hover:bg-green-600 shadow-md transition-colors duration-200"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div
+      id="toast"
+      class="fixed top-6 right-6 bg-green-500 text-white py-2 px-4 rounded-xl shadow-lg hidden transition-all duration-300 z-50 font-semibold"
+    ></div>
+
+    <script>
+      document.getElementById("goHomeBtn").addEventListener("click", () => {
+        window.location.href = "/tasks/";
+      });
+      // Toast function
+      const toast = document.getElementById("toast");
+      function showToast(message, error = false) {
+        toast.textContent = message;
+        toast.classList.remove("hidden", "bg-red-600", "bg-green-500");
+        toast.classList.add(error ? "bg-red-600" : "bg-green-500");
+        toast.classList.remove("opacity-0");
+        toast.classList.add("opacity-100");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      // Tabs
+      const profileTab = document.getElementById("profileTab");
+      const securityTab = document.getElementById("securityTab");
+      const profileContent = document.getElementById("profileContent");
+      const securityContent = document.getElementById("securityContent");
+      [
+        { button: profileTab, content: profileContent },
+        { button: securityTab, content: securityContent },
+      ].forEach(({ button, content }) => {
+        button.addEventListener("click", () => {
+          [
+            { button: profileTab, content: profileContent },
+            { button: securityTab, content: securityContent },
+          ].forEach(({ button: btn, content: cnt }) => {
+            if (btn === button) {
+              btn.classList.add("bg-violet-500", "text-white");
+              btn.classList.remove("bg-gray-800/30", "text-gray-300");
+              cnt.classList.remove("hidden");
+            } else {
+              btn.classList.add("bg-gray-800/30", "text-gray-300");
+              btn.classList.remove("bg-violet-500", "text-white");
+              cnt.classList.add("hidden");
+            }
+          });
+        });
+      });
+
+      // Elements
+      const usernameInput = document.getElementById("username");
+      const emailInput = document.getElementById("email");
+      const editBtn = document.getElementById("editBtn");
+      const saveCancelBtns = document.getElementById("saveCancelBtns");
+      const securityModalEl = document.getElementById("securityModal");
+      const passwordModalEl = document.getElementById("passwordModal");
+      const secQuestionInput = document.getElementById("secQuestion");
+      const secAnswerInput = document.getElementById("secAnswer");
+      let originalUsername = "",
+        originalEmail = "";
+
+      // Load profile
+      async function loadProfile() {
+        const token = localStorage.getItem("token");
+        if (!token) return (window.location.href = "/");
+        try {
+          const res = await apiClient.get("users/me/");
+          const user = res.data;
+          usernameInput.value = user.username;
+          emailInput.value = user.email;
+          originalUsername = user.username;
+          originalEmail = user.email;
+          if (user.profile_image)
+            document.getElementById("profileImage").src = user.profile_image;
+          if (!user.profile?.security_question) openModal(securityModalEl);
+        } catch (err) {
+          showToast("Failed to load profile.", true);
+          console.error(err);
+        }
+      }
+      loadProfile();
+
+      // Edit Profile
+      editBtn.addEventListener("click", () => {
+        usernameInput.removeAttribute("readonly");
+        emailInput.removeAttribute("readonly");
+        editBtn.classList.add("hidden");
+        saveCancelBtns.classList.remove("hidden");
+      });
+      document.getElementById("cancelBtn").addEventListener("click", () => {
+        usernameInput.value = originalUsername;
+        emailInput.value = originalEmail;
+        usernameInput.setAttribute("readonly", true);
+        emailInput.setAttribute("readonly", true);
+        saveCancelBtns.classList.add("hidden");
+        editBtn.classList.remove("hidden");
+      });
+      document.getElementById("saveBtn").addEventListener("click", async () => {
+        const username = usernameInput.value.trim(),
+          email = emailInput.value.trim();
+        if (!username || !email) {
+          showToast("Username and Email cannot be empty", true);
+          return;
+        }
+        try {
+          await apiClient.patch("users/update-user-info/", { username, email });
+          originalUsername = username;
+          originalEmail = email;
+          usernameInput.setAttribute("readonly", true);
+          emailInput.setAttribute("readonly", true);
+          saveCancelBtns.classList.add("hidden");
+          editBtn.classList.remove("hidden");
+          showToast("Profile updated successfully!");
+        } catch (err) {
+          showToast(err.response?.data?.error || "Profile update failed", true);
+          console.error(err);
+        }
+      });
+
+      // Modal helpers
+      function openModal(modal) {
+        modal.classList.add("active");
+        document.body.classList.add("modal-open");
+        if (modal === securityModalEl) secQuestionInput.focus();
+      }
+      function closeModal(modal) {
+        modal.classList.remove("active");
+        document.body.classList.remove("modal-open");
+        if (modal === securityModalEl) {
+          secQuestionInput.value = "";
+          secAnswerInput.value = "";
+        }
+      }
+
+      // Security Question Modal
+      document
+        .getElementById("securityBtn")
+        .addEventListener("click", () => openModal(securityModalEl));
+      document
+        .getElementById("closeSecModal")
+        .addEventListener("click", () => closeModal(securityModalEl));
+      document
+        .getElementById("saveSecModal")
+        .addEventListener("click", async () => {
+          const question = secQuestionInput.value.trim(),
+            answer = secAnswerInput.value.trim();
+          if (!question || !answer) {
+            showToast("Both question and answer are required", true);
+            return;
+          }
+          try {
+            await apiClient.patch("users/update-security-question/", {
+              security_question: question,
+              security_answer: answer,
+            });
+            showToast("Security question updated!");
+            closeModal(securityModalEl);
+          } catch (err) {
+            showToast(
+              err.response?.data?.error || "Failed to update security question",
+              true
+            );
+            console.error(err);
+          }
+        });
+
+      // Password Modal
+      document
+        .getElementById("passwordBtn")
+        .addEventListener("click", () => openModal(passwordModalEl));
+      document
+        .getElementById("closePassModal")
+        .addEventListener("click", () => closeModal(passwordModalEl));
+      document
+        .getElementById("savePassModal")
+        .addEventListener("click", async () => {
+          const oldPass = document.getElementById("oldPassword").value.trim(),
+            newPass = document.getElementById("newPassword").value.trim();
+          if (!oldPass || !newPass) {
+            showToast("Both old and new password required", true);
+            return;
+          }
+          try {
+            await apiClient.patch("users/change-password/", {
+              old_password: oldPass,
+              new_password: newPass,
+            });
+            showToast("Password changed successfully!");
+            closeModal(passwordModalEl);
+          } catch (err) {
+            showToast(
+              err.response?.data?.error || "Password update failed",
+              true
+            );
+            console.error(err);
+          }
+        });
+
+      // Logout
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", async () => {
+          try {
+            await apiClient.post("users/logout/");
+          } catch (_) {}
+          localStorage.removeItem("token");
+          showToast("Logged out");
+          setTimeout(() => (window.location.href = "/"), 1000);
+        });
+    </script>
+  </body>
+</html>
