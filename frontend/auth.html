@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUST DO IT - Auth</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="./axios.js"></script>
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .auth-card {
+        background: rgba(31, 41, 55, 0.85);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      }
+      .fade-in {
+        animation: fadeIn 0.4s ease-in;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-900 flex items-center justify-center p-6"
+  >
+    <div
+      class="auth-card w-full max-w-md rounded-2xl px-8 py-10 fade-in border border-gray-700"
+    >
+      <div class="flex flex-col items-center mb-8">
+        <h1 class="text-3xl font-bold text-white tracking-wide">JUST DO IT</h1>
+        <p class="text-gray-400 text-sm mt-1">Your tasks. Your discipline.</p>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Welcome Back!!
+        </h2>
+        <div class="space-y-4">
+          <input
+            id="loginUsername"
+            type="text"
+            placeholder="Username"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Password"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+        <button
+          type="submit"
+          id="loginBtn"
+          class="mt-6 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+        >
+          Login
+        </button>
+        <div class="mt-6 flex flex-col items-center space-y-2">
+          <button
+            type="button"
+            onclick="showForgotPassword()"
+            class="text-sm text-violet-400 hover:text-violet-300 transition"
+          >
+            Forgot Password?
+          </button>
+          <p class="text-gray-400 text-sm">
+            Don’t have an account?
+            <button
+              type="button"
+              onclick="toggleForms('register')"
+              class="text-violet-400 hover:text-violet-300"
+            >
+              Register
+            </button>
+          </p>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" onsubmit="handleRegister(event)" class="hidden">
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Create Account
+        </h2>
+        <div class="space-y-4">
+          <input
+            id="registerUsername"
+            type="text"
+            placeholder="Username"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="registerEmail"
+            type="email"
+            placeholder="Email"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <input
+            id="registerPassword"
+            type="password"
+            placeholder="Password"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        </div>
+        <button
+          type="submit"
+          class="mt-6 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+        >
+          Register
+        </button>
+        <p class="text-gray-400 text-sm text-center mt-6">
+          Already have an account?
+          <button
+            type="button"
+            onclick="toggleForms('login')"
+            class="text-violet-400 hover:text-violet-300"
+          >
+            Login
+          </button>
+        </p>
+      </form>
+
+      <!-- FORGOT PASSWORD FORM (3-step) -->
+      <form
+        id="forgotPasswordForm"
+        onsubmit="handleForgotPassword(event)"
+        class="hidden"
+      >
+        <h2 class="text-xl font-semibold text-white mb-6 text-center">
+          Reset Password 🔑
+        </h2>
+
+        <!-- STEP 1: Username -->
+        <div id="fpStep1" class="space-y-4">
+          <input
+            id="fpUsername"
+            type="text"
+            placeholder="Enter your username"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            type="button"
+            onclick="getSecurityQuestion()"
+            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Next
+          </button>
+        </div>
+
+        <!-- STEP 2: Security Question -->
+        <div id="fpStep2" class="space-y-4 hidden">
+          <input
+            id="fpSecurityQuestion"
+            type="text"
+            placeholder="Security Question"
+            disabled
+            class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-gray-400"
+          />
+          <input
+            id="fpSecurityAnswer"
+            type="text"
+            placeholder="Your Answer"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            type="button"
+            onclick="verifySecurityAnswer()"
+            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Next
+          </button>
+        </div>
+
+        <!-- STEP 3: New Password -->
+        <div id="fpStep3" class="space-y-4 hidden">
+          <input
+            id="fpNewPassword"
+            type="password"
+            placeholder="New Password"
+            required
+            class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <button
+            type="submit"
+            class="mt-2 w-full py-3 rounded-xl font-bold text-white bg-violet-500 hover:bg-violet-600 shadow-lg transition-colors duration-200"
+          >
+            Reset Password
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Toast -->
+    <div
+      id="toast"
+      class="fixed top-6 right-6 py-2 px-4 rounded-lg shadow-lg hidden transition-all duration-300 z-50 text-white font-semibold bg-green-500"
+    ></div>
+
+    <script>
+      const toast = document.getElementById("toast");
+
+      function showToast(message, error = false) {
+        toast.textContent = message;
+        toast.classList.remove("hidden", "bg-red-600", "bg-green-500");
+        toast.classList.add(error ? "bg-red-600" : "bg-green-500");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      function toggleForms(form) {
+        const forms = ["loginForm", "registerForm", "forgotPasswordForm"];
+        forms.forEach((id) =>
+          document
+            .getElementById(id)
+            .classList.toggle("hidden", id !== form + "Form")
+        );
+      }
+
+      // LOGIN
+      async function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+        if (!username || !password)
+          return showToast("Please enter all fields", true);
+
+        try {
+          const { data } = await apiClient.post("/users/login/", {
+            username,
+            password,
+          });
+          localStorage.setItem("token", data.token);
+          showToast("Login successful!");
+          window.location.href = "/tasks/";
+        } catch (err) {
+          showToast(err.response?.data?.error || "Invalid credentials", true);
+        }
+      }
+
+      async function handleRegister(event) {
+        event.preventDefault();
+
+        const username = document
+          .getElementById("registerUsername")
+          .value.trim();
+        const email = document.getElementById("registerEmail").value.trim();
+        const password = document
+          .getElementById("registerPassword")
+          .value.trim();
+
+        if (!username || !email || !password)
+          return showToast("All fields required", true);
+
+        try {
+          const { data } = await apiClient.post("/users/signup/", {
+            username,
+            email,
+            password,
+          });
+
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
+
+          showToast("Registration successful!");
+          window.location.href = "/tasks/";
+        } catch (err) {
+          let message = "Something went wrong.";
+
+          if (err.response) {
+            const data = err.response.data;
+            if (typeof data === "object" && !data.error) {
+              message = Object.values(data).flat().join("\n");
+            } else if (data.error) {
+              message = data.error;
+            }
+          }
+
+          showToast(message, true);
+        }
+      }
+
+      // STEP 1: Get Security Question
+      async function getSecurityQuestion() {
+        const username = document.getElementById("fpUsername").value.trim();
+        if (!username) return showToast("Username is required", true);
+
+        try {
+          const { data } = await apiClient.post(
+            "/users/get-security-question/",
+            { username }
+          );
+          document.getElementById("fpStep1").classList.add("hidden");
+          document.getElementById("fpStep2").classList.remove("hidden");
+          document.getElementById("fpSecurityQuestion").value =
+            data.security_question;
+        } catch (err) {
+          showToast(err.response?.data?.error || "User not found", true);
+        }
+      }
+
+      // STEP 2: Verify Security Answer
+      async function verifySecurityAnswer() {
+        const username = document.getElementById("fpUsername").value.trim();
+        const answer = document.getElementById("fpSecurityAnswer").value.trim();
+        if (!answer)
+          return showToast("Please answer the security question.", true);
+
+        try {
+          await apiClient.post("/users/verify-security-answer/", {
+            username,
+            security_answer: answer,
+          });
+          // Correct → go to Step 3
+          document.getElementById("fpStep2").classList.add("hidden");
+          document.getElementById("fpStep3").classList.remove("hidden");
+        } catch (err) {
+          showToast("Incorrect answer. Returning to login.", true);
+
+          document.getElementById("fpStep1").classList.remove("hidden");
+          document.getElementById("fpStep2").classList.add("hidden");
+          document.getElementById("fpStep3").classList.add("hidden");
+          document.getElementById("fpUsername").value = "";
+          document.getElementById("fpSecurityAnswer").value = "";
+          document.getElementById("fpNewPassword").value = "";
+          document.getElementById("fpSecurityQuestion").value = "";
+
+          toggleForms("login");
+        }
+      }
+      async function handleForgotPassword(event) {
+        event.preventDefault();
+        const username = document.getElementById("fpUsername").value.trim();
+        const securityAnswer = document
+          .getElementById("fpSecurityAnswer")
+          .value.trim();
+        const newPassword = document
+          .getElementById("fpNewPassword")
+          .value.trim();
+        if (!securityAnswer || !newPassword)
+          return showToast("All fields are required", true);
+
+        try {
+          await apiClient.post("/users/reset-password/", {
+            username,
+            security_answer: securityAnswer,
+            new_password: newPassword,
+          });
+          showToast("Password reset successfully!");
+          toggleForms("login");
+
+          // Reset stepper
+          document.getElementById("fpStep1").classList.remove("hidden");
+          document.getElementById("fpStep2").classList.add("hidden");
+          document.getElementById("fpStep3").classList.add("hidden");
+          document.getElementById("fpUsername").value = "";
+          document.getElementById("fpSecurityAnswer").value = "";
+          document.getElementById("fpNewPassword").value = "";
+          document.getElementById("fpSecurityQuestion").value = "";
+        } catch (err) {
+          showToast(
+            err.response?.data?.error || "Failed to reset password",
+            true
+          );
+        }
+      }
+
+      function showForgotPassword() {
+        toggleForms("forgotPassword");
+      }
+
+      (function redirectIfLoggedIn() {
+        const token = localStorage.getItem("token");
+        if (token) {
+          window.location.href = "/tasks/";
+        }
+      })();
+    </script>
+  </body>
+</html>
