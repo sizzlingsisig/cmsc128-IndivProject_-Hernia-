@@ -67,7 +67,7 @@ def tasks(request):
     return render(request, "base/tasks.html", {"tasks": tasks})
 
 def auth(request):
-    return render(request, "base/auth.html")
+    return render(request, "base/index.html")
 
 def profile(request):
     return render(request, "base/profile.html")
