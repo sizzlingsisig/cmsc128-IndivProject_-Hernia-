@@ -261,7 +261,7 @@
           });
           localStorage.setItem("token", data.token);
           showToast("Login successful!");
-          window.location.href = "/tasks/";
+          window.location.href = "/tasks.html";
         } catch (err) {
           showToast(err.response?.data?.error || "Invalid credentials", true);
         }
@@ -293,7 +293,7 @@
           }
 
           showToast("Registration successful!");
-          window.location.href = "/tasks/";
+          window.location.href = "/tasks.html";
         } catch (err) {
           let message = "Something went wrong.";
 
