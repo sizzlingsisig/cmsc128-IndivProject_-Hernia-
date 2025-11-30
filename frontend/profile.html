@@ -265,7 +265,7 @@
 
     <script>
       document.getElementById("goHomeBtn").addEventListener("click", () => {
-        window.location.href = "/tasks/";
+        window.location.href = "/tasks.html";
       });
       // Toast function
       const toast = document.getElementById("toast");
@@ -320,7 +320,7 @@
       // Load profile
       async function loadProfile() {
         const token = localStorage.getItem("token");
-        if (!token) return (window.location.href = "/");
+        if (!token) return (window.location.href = "/index.html");
         try {
           const res = await apiClient.get("users/me/");
           const user = res.data;
@@ -463,7 +463,7 @@
           } catch (_) {}
           localStorage.removeItem("token");
           showToast("Logged out");
-          setTimeout(() => (window.location.href = "/"), 1000);
+          setTimeout(() => (window.location.href = "/index.html"), 1000);
         });
     </script>
   </body>
