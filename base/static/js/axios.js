@@ -1,9 +1,8 @@
 // axios.js
-// Make sure to include <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> in HTML
 
-// Create a global Axios instance
+// Dynamically get backend URL based on where the frontend is loaded
 const apiClient = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
+  baseURL: `${window.location.origin}/api/`,  // instead of hard-coded 127.0.0.1
   timeout: 10000,
 });
 
