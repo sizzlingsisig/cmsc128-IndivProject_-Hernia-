@@ -32,7 +32,13 @@ SECRET_KEY = 'SECRET_KEY'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.254.112']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '192.168.254.112',
+    'justdoit-d8ds.onrender.com',
+    'cmsc128-indiv-project-hernia.vercel.app',
+]
 
 
 # Application definition
@@ -48,7 +54,8 @@ INSTALLED_APPS = [
     'base.apps.BaseConfig',
     'rest_framework',
     'rest_framework.authtoken',
-    
+        'corsheaders',
+
 
 ]
 
@@ -60,8 +67,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'corsheaders.middleware.CorsMiddleware',
+
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "https://cmsc128-indiv-project-hernia.vercel.app",
+]
 ROOT_URLCONF = 'JustDoIt.urls'
 
 TEMPLATES = [

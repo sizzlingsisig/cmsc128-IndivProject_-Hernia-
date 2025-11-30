@@ -2,7 +2,7 @@
 
 // Dynamically get backend URL based on where the frontend is loaded
 const apiClient = axios.create({
-  baseURL: `${window.location.origin}/api/`,  // instead of hard-coded 127.0.0.1
+  baseURL: "https://justdoit-d8ds.onrender.com/api/", // your Render backend
   timeout: 10000,
 });
 
